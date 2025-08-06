@@ -68,7 +68,7 @@ def save_token_usage(usage):
 def update_token_usage(tokens_used):
     """Update token usage tracking"""
     usage = load_token_usage()
-    current_month = datetime.now().strftime("%Y-%m")
+    current_month = get_local_date().strftime("%Y-%m")
     
     # Reset if new month
     if usage["month"] != current_month:
@@ -170,8 +170,8 @@ def create_mood_calendar(mood_data, year, month):
     calendar_html += "</table></div>"
     return calendar_html
 
-def mood_selection_ui():
-    """Create mood selection UI"""
+def mood_selection_ui(context=""):
+    """Create mood selection UI with unique keys"""
     st.markdown("### How are you feeling?")
     
     col1, col2, col3, col4 = st.columns(4)
@@ -189,25 +189,25 @@ def mood_selection_ui():
     selected_mood = None
     
     with col1:
-        if st.button("😊 Happy", key="mood_happy", use_container_width=True):
+        if st.button("😊 Happy", key=f"mood_happy_{context}", use_container_width=True):
             selected_mood = "happy"
-        if st.button("😌 Calm", key="mood_calm", use_container_width=True):
+        if st.button("😌 Calm", key=f"mood_calm_{context}", use_container_width=True):
             selected_mood = "calm"
     
     with col2:
-        if st.button("😔 Sad", key="mood_sad", use_container_width=True):
+        if st.button("😔 Sad", key=f"mood_sad_{context}", use_container_width=True):
             selected_mood = "sad"
-        if st.button("😤 Stressed", key="mood_stressed", use_container_width=True):
+        if st.button("😤 Stressed", key=f"mood_stressed_{context}", use_container_width=True):
             selected_mood = "stressed"
     
     with col3:
-        if st.button("😡 Angry", key="mood_angry", use_container_width=True):
+        if st.button("😡 Angry", key=f"mood_angry_{context}", use_container_width=True):
             selected_mood = "angry"
-        if st.button("😴 Tired", key="mood_tired", use_container_width=True):
+        if st.button("😴 Tired", key=f"mood_tired_{context}", use_container_width=True):
             selected_mood = "tired"
     
     with col4:
-        if st.button("😐 Neutral", key="mood_neutral", use_container_width=True):
+        if st.button("😐 Neutral", key=f"mood_neutral_{context}", use_container_width=True):
             selected_mood = "neutral"
     
     return selected_mood
@@ -541,12 +541,12 @@ def get_local_date():
     try:
         # Use Central Time
         local_tz = pytz.timezone('America/Chicago')
-        utc_now = datetime.utcnow()
+        utc_now = datetime.now(datetime.UTC)
         local_time = local_tz.fromutc(utc_now)
         return local_time
     except Exception as e:
         # Fallback to local time if timezone fails
-        return datetime.now()
+        return get_local_date()
 
 # Initialize database on startup
 init_database()
@@ -770,14 +770,14 @@ st.markdown("""
     /* Responsive design */
     @media (max-width: 768px) {
         .main-header {
-            font-size: 1.6rem;
+            font-size: 1.2rem;
             word-wrap: normal;
             hyphens: none;
             line-height: 1.1;
             white-space: nowrap;
         }
         .main-subtitle {
-            font-size: 0.8rem;
+            font-size: 0.7rem;
         }
         .quote-container {
             margin: 1rem 0;
@@ -787,14 +787,14 @@ st.markdown("""
     
     @media (max-width: 480px) {
         .main-header {
-            font-size: 1.2rem;
+            font-size: 0.9rem;
             word-wrap: normal;
             hyphens: none;
             line-height: 1.1;
             white-space: nowrap;
         }
         .main-subtitle {
-            font-size: 0.7rem;
+            font-size: 0.6rem;
         }
     }
     
@@ -1202,11 +1202,11 @@ def main():
                 st.markdown("### Track Your Mood")
                 st.markdown("Before you start journaling, how are you feeling?")
                 
-                mood_before = mood_selection_ui()
+                mood_before = mood_selection_ui("home")
                 if mood_before:
                     # Save mood to mood data file
                     mood_data = load_mood_data()
-                    today = datetime.now().strftime('%Y-%m-%d')
+                    today = get_local_date().strftime('%Y-%m-%d')
                     mood_data[today] = mood_before
                     save_mood_data(mood_data)
                     
@@ -1330,7 +1330,7 @@ def main():
             mood_data = load_mood_data()
             
             # Calendar view
-            st.subheader("Mood Calendar")
+            st.markdown("### Mood Calendar")
             current_date = get_local_date()
             year = current_date.year
             month = current_date.month
@@ -1364,8 +1364,8 @@ def main():
             st.markdown(calendar_html, unsafe_allow_html=True)
             
             # Mood selection for today
-            st.subheader("Track Today's Mood")
-            today = datetime.now().strftime('%Y-%m-%d')
+            st.markdown("### Track Today's Mood")
+            today = get_local_date().strftime('%Y-%m-%d')
             
             if today in mood_data:
                 st.success(f"Mood recorded for today: {get_mood_emoji(mood_data[today])} {mood_data[today].title()}")
@@ -1374,7 +1374,7 @@ def main():
                     st.session_state.show_update_mood = True
                     st.rerun()
             else:
-                selected_mood = mood_selection_ui()
+                selected_mood = mood_selection_ui("tracker")
                 if selected_mood:
                     mood_data[today] = selected_mood
                     save_mood_data(mood_data)
@@ -1384,7 +1384,7 @@ def main():
             # Show mood selection if updating
             if st.session_state.get('show_update_mood', False):
                 st.markdown("**Select your new mood:**")
-                new_mood = mood_selection_ui()
+                new_mood = mood_selection_ui("update")
                 if new_mood:
                     mood_data[today] = new_mood
                     save_mood_data(mood_data)
@@ -1600,13 +1600,13 @@ def main():
                 st.markdown("### How do you feel now?")
                 st.markdown("After journaling, has your mood changed?")
                 
-                mood_after = mood_selection_ui()
+                mood_after = mood_selection_ui("after")
                 if mood_after:
                     st.session_state.mood_after = mood_after
                     
                     # Save mood data
                     mood_data = load_mood_data()
-                    today = datetime.now().strftime('%Y-%m-%d')
+                    today = get_local_date().strftime('%Y-%m-%d')
                     
                     # Save before and after moods
                     if st.session_state.mood_before:
@@ -1621,7 +1621,7 @@ def main():
                         st.info(f"Mood change: {get_mood_emoji(st.session_state.mood_before)} {st.session_state.mood_before.title()} → {get_mood_emoji(mood_after)} {mood_after.title()}")
                 
                 # Download button
-                timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M")
+                timestamp = get_local_date().strftime("%Y-%m-%d_%H-%M")
                 journal_text = f"Smart Journal Entry - {timestamp}\n\n{st.session_state.journal_entry}"
                 st.download_button(
                     label="Download Journal Entry",
