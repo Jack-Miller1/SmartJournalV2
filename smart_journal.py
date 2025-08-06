@@ -4,6 +4,7 @@ import json
 import sqlite3
 import os
 from datetime import datetime, timedelta
+import pytz
 import calendar
 import plotly.express as px
 import plotly.graph_objects as go
@@ -57,7 +58,7 @@ def load_token_usage():
         with open('token_usage.json', 'r') as f:
             return json.load(f)
     except FileNotFoundError:
-        return {"total_tokens": 0, "month": datetime.now().strftime("%Y-%m")}
+        return {"total_tokens": 0, "month": get_local_date().strftime("%Y-%m")}
 
 def save_token_usage(usage):
     """Save token usage to file"""
@@ -80,7 +81,7 @@ def update_token_usage(tokens_used):
 def check_token_limit():
     """Check if user is within token limit"""
     usage = load_token_usage()
-    current_month = datetime.now().strftime("%Y-%m")
+    current_month = get_local_date().strftime("%Y-%m")
     
     # Reset if new month
     if usage["month"] != current_month:
@@ -376,7 +377,7 @@ def save_journal_entry(mode, summary, questions, answers, journal_entry, tokens_
             (date, mode, summary, questions, answers, journal_entry, tokens_used)
             VALUES (?, ?, ?, ?, ?, ?, ?)
         ''', (
-            datetime.now().strftime('%Y-%m-%d'),
+            get_local_date().strftime('%Y-%m-%d'),
             mode,
             summary,
             questions,
@@ -477,7 +478,7 @@ def get_quote_of_the_day():
     ]
     
     # Use current date to select a quote (changes daily)
-    current_date = datetime.now()
+    current_date = get_local_date()
     day_of_year = current_date.timetuple().tm_yday
     quote_index = day_of_year % len(quotes)
     
@@ -519,6 +520,17 @@ def get_analytics():
     except Exception as e:
         st.error(f"Error getting analytics: {str(e)}")
         return {}
+
+def get_local_date():
+    """Get current date in local timezone"""
+    try:
+        # Try to get user's timezone, default to UTC if not available
+        local_tz = pytz.timezone('America/New_York')  # You can change this to your timezone
+        local_time = datetime.now(local_tz)
+        return local_time
+    except:
+        # Fallback to UTC if timezone fails
+        return datetime.now()
 
 # Initialize database on startup
 init_database()
@@ -723,6 +735,9 @@ st.markdown("""
     @media (max-width: 768px) {
         .main-header {
             font-size: 2.5rem;
+            word-wrap: break-word;
+            hyphens: auto;
+            line-height: 1.1;
         }
         .main-subtitle {
             font-size: 1rem;
@@ -730,6 +745,15 @@ st.markdown("""
         .quote-container {
             margin: 1rem 0;
             padding: 1.5rem;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .main-header {
+            font-size: 2rem;
+            word-wrap: break-word;
+            hyphens: auto;
+            line-height: 1.1;
         }
     }
     
@@ -1254,7 +1278,7 @@ def main():
             
             # Calendar view
             st.subheader("Mood Calendar")
-            current_date = datetime.now()
+            current_date = get_local_date()
             year = current_date.year
             month = current_date.month
             
