@@ -546,7 +546,7 @@ def get_local_date():
         return local_time
     except Exception as e:
         # Fallback to local time if timezone fails
-        return get_local_date()
+        return datetime.now()
 
 # Initialize database on startup
 init_database()
