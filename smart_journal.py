@@ -224,8 +224,14 @@ def mood_analytics_ui(mood_data):
     dates = []
     moods = []
     for date, mood in mood_data.items():
-        dates.append(datetime.strptime(date, '%Y-%m-%d'))
-        moods.append(mood)
+        # Clean the date string to remove any suffixes like _after, _before
+        clean_date = date.split('_')[0]  # Remove any suffix after underscore
+        try:
+            dates.append(datetime.strptime(clean_date, '%Y-%m-%d'))
+            moods.append(mood)
+        except ValueError:
+            # Skip invalid dates
+            continue
     
     df = pd.DataFrame({'date': dates, 'mood': moods})
     
@@ -303,8 +309,17 @@ def get_mood_analytics(mood_data):
         return {}
     
     # Convert date strings to datetime objects for easier processing
-    dates = [datetime.strptime(d, '%Y-%m-%d') for d in mood_data.keys()]
-    moods = [m for m in mood_data.values()]
+    dates = []
+    moods = []
+    for d, m in mood_data.items():
+        # Clean the date string to remove any suffixes like _after, _before
+        clean_date = d.split('_')[0]  # Remove any suffix after underscore
+        try:
+            dates.append(datetime.strptime(clean_date, '%Y-%m-%d'))
+            moods.append(m)
+        except ValueError:
+            # Skip invalid dates
+            continue
     
     # Create a DataFrame
     df = pd.DataFrame({
@@ -524,8 +539,8 @@ def get_analytics():
 def get_local_date():
     """Get current date in local timezone"""
     try:
-        # Use Eastern Time (you can change this to your timezone)
-        local_tz = pytz.timezone('America/New_York')
+        # Use Central Time
+        local_tz = pytz.timezone('America/Chicago')
         utc_now = datetime.utcnow()
         local_time = local_tz.fromutc(utc_now)
         return local_time
@@ -569,10 +584,10 @@ st.markdown("""
     /* Clean card styling */
     .journal-entry {
         background: #f8f9fa;
-        padding: 2rem;
+        padding: 1.5rem;
         border-radius: 12px;
         border-left: 4px solid #667eea;
-        margin: 1.5rem 0;
+        margin: 0.5rem 0;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
     
@@ -621,22 +636,42 @@ st.markdown("""
         border: 2px solid #e9ecef;
         transition: all 0.2s ease;
         background: white;
+        color: #2c3e50 !important;
     }
     
     .stTextArea > div > div > textarea:focus {
         border-color: #667eea;
         box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        color: #2c3e50 !important;
+    }
+    
+    /* Also fix regular text inputs */
+    .stTextInput > div > div > input {
+        color: #2c3e50 !important;
+        caret-color: #2c3e50 !important;
+    }
+    
+    .stTextInput > div > div > input:focus {
+        color: #2c3e50 !important;
+        caret-color: #2c3e50 !important;
+    }
+    
+    /* Fix cursor color for text areas */
+    .stTextArea > div > div > textarea {
+        caret-color: #2c3e50 !important;
     }
     
     /* Progress indicators */
     .progress-step {
         background: #e9ecef;
         color: #495057;
-        padding: 0.5rem 1rem;
+        padding: 0.3rem 0.8rem;
         border-radius: 6px;
-        margin: 0.25rem 0;
+        margin: 0.15rem 0;
         font-weight: 500;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
+        display: inline-block;
+        margin-right: 0.5rem;
     }
     
     .progress-step.active {
@@ -735,14 +770,14 @@ st.markdown("""
     /* Responsive design */
     @media (max-width: 768px) {
         .main-header {
-            font-size: 2.2rem;
+            font-size: 1.6rem;
             word-wrap: normal;
             hyphens: none;
             line-height: 1.1;
             white-space: nowrap;
         }
         .main-subtitle {
-            font-size: 1rem;
+            font-size: 0.8rem;
         }
         .quote-container {
             margin: 1rem 0;
@@ -752,11 +787,14 @@ st.markdown("""
     
     @media (max-width: 480px) {
         .main-header {
-            font-size: 1.8rem;
+            font-size: 1.2rem;
             word-wrap: normal;
             hyphens: none;
             line-height: 1.1;
             white-space: nowrap;
+        }
+        .main-subtitle {
+            font-size: 0.7rem;
         }
     }
     
@@ -872,6 +910,10 @@ st.markdown("""
 def generate_quick_journal_entry(client, summary):
     """Generate a complete journal entry directly from the summary using GPT-3.5-turbo"""
     try:
+        # Check for minimal input
+        if len(summary.strip()) < 10:
+            return f"Today I didn't have much to share. ({get_local_date().strftime('%B %d, %Y')})", 0
+        
         # Check token limit before making request
         within_limit, current_usage = check_token_limit()
         if not within_limit:
@@ -952,6 +994,10 @@ def generate_quick_questions(client, summary):
 def generate_quick_journal_with_answers(client, summary, answers):
     """Generate journal entry from summary and quick answers"""
     try:
+        # Check for minimal input
+        if len(summary.strip()) < 10 or len(answers.strip()) < 10:
+            return f"Today I didn't have much to share. ({get_local_date().strftime('%B %d, %Y')})", 0
+        
         # Check token limit before making request
         within_limit, current_usage = check_token_limit()
         if not within_limit:
@@ -1035,6 +1081,10 @@ def generate_follow_up_questions(client, summary):
 def generate_journal_entry(client, summary, answers):
     """Generate a reflective journal entry using GPT-3.5-turbo"""
     try:
+        # Check for minimal input
+        if len(summary.strip()) < 10 or len(answers.strip()) < 10:
+            return f"Today I didn't have much to share. ({get_local_date().strftime('%B %d, %Y')})", 0
+        
         # Check token limit before making request
         within_limit, current_usage = check_token_limit()
         if not within_limit:
@@ -1381,25 +1431,47 @@ def main():
                 if st.session_state.questions and st.session_state.mode == "quick":
                     st.markdown('<h2 class="section-header">Step 2: Quick Reflection</h2>', unsafe_allow_html=True)
                     
-                    st.markdown('<div class="question-box">', unsafe_allow_html=True)
-                    st.markdown("**Quick Questions:**")
-                    st.markdown(st.session_state.questions)
-                    st.markdown('</div>', unsafe_allow_html=True)
+                    # Format questions as a proper list
+                    questions_list = st.session_state.questions.split('\n')
+                    formatted_questions = ""
+                    for i, question in enumerate(questions_list, 1):
+                        if question.strip():
+                            # Remove any existing numbers and clean the question
+                            clean_question = question.strip()
+                            # Remove common number patterns at the start
+                            if clean_question.startswith(('1.', '2.', '3.', '4.', '5.', '6.', '7.', '8.', '9.')):
+                                clean_question = clean_question[2:].strip()
+                            elif clean_question.startswith(('1)', '2)', '3)', '4)', '5)', '6)', '7)', '8)', '9)')):
+                                clean_question = clean_question[2:].strip()
+                            formatted_questions += f"{i}. {clean_question}<br>"
                     
-                    # Create text areas for answers
+                    # Display questions with answer boxes directly below each
                     questions_list = st.session_state.questions.split('\n')
                     answers = []
                     
                     for i, question in enumerate(questions_list):
                         if question.strip():
+                            # Clean the question (remove existing numbers)
+                            clean_question = question.strip()
+                            if clean_question.startswith(('1.', '2.', '3.', '4.', '5.', '6.', '7.', '8.', '9.')):
+                                clean_question = clean_question[2:].strip()
+                            elif clean_question.startswith(('1)', '2)', '3)', '4)', '5)', '6)', '7)', '8)', '9)')):
+                                clean_question = clean_question[2:].strip()
+                            
+                            # Display question and answer box together
+                            st.markdown(f'<div style="color: white; margin-bottom: 0.5rem;"><strong>{i+1}. {clean_question}</strong></div>', unsafe_allow_html=True)
+                            
                             answer = st.text_area(
-                                f"Answer {i+1}:",
+                                f"Your answer:",
                                 key=f"quick_answer_{i}",
                                 height=80,
-                                placeholder=f"Your quick answer to: {question.strip()}",
+                                placeholder=f"Your quick answer to: {clean_question}",
                                 max_chars=200
                             )
-                            answers.append(f"Q{i+1}: {question.strip()}\nA{i+1}: {answer}")
+                            answers.append(f"Q{i+1}: {clean_question}\nA{i+1}: {answer}")
+                            
+                            # Add some spacing between question groups
+                            st.markdown("<br>", unsafe_allow_html=True)
                     
                     if st.button("Generate Journal Entry", type="primary", disabled=not all(answers)):
                          with st.spinner("Creating your journal entry..."):
@@ -1433,25 +1505,47 @@ def main():
                 if st.session_state.questions:
                     st.markdown('<h2 class="section-header">Step 2: Reflect Deeper</h2>', unsafe_allow_html=True)
                     
-                    st.markdown('<div class="question-box">', unsafe_allow_html=True)
-                    st.markdown("**AI's Follow-up Questions:**")
-                    st.markdown(st.session_state.questions)
-                    st.markdown('</div>', unsafe_allow_html=True)
+                    # Format questions as a proper list
+                    questions_list = st.session_state.questions.split('\n')
+                    formatted_questions = ""
+                    for i, question in enumerate(questions_list, 1):
+                        if question.strip():
+                            # Remove any existing numbers and clean the question
+                            clean_question = question.strip()
+                            # Remove common number patterns at the start
+                            if clean_question.startswith(('1.', '2.', '3.', '4.', '5.', '6.', '7.', '8.', '9.')):
+                                clean_question = clean_question[2:].strip()
+                            elif clean_question.startswith(('1)', '2)', '3)', '4)', '5)', '6)', '7)', '8)', '9)')):
+                                clean_question = clean_question[2:].strip()
+                            formatted_questions += f"{i}. {clean_question}<br>"
                     
-                    # Create text areas for answers
+                    # Display questions with answer boxes directly below each
                     questions_list = st.session_state.questions.split('\n')
                     answers = []
                     
                     for i, question in enumerate(questions_list):
                         if question.strip():
+                            # Clean the question (remove existing numbers)
+                            clean_question = question.strip()
+                            if clean_question.startswith(('1.', '2.', '3.', '4.', '5.', '6.', '7.', '8.', '9.')):
+                                clean_question = clean_question[2:].strip()
+                            elif clean_question.startswith(('1)', '2)', '3)', '4)', '5)', '6)', '7)', '8)', '9)')):
+                                clean_question = clean_question[2:].strip()
+                            
+                            # Display question and answer box together
+                            st.markdown(f'<div style="color: white; margin-bottom: 0.5rem;"><strong>{i+1}. {clean_question}</strong></div>', unsafe_allow_html=True)
+                            
                             answer = st.text_area(
-                                f"Answer {i+1}:",
+                                f"Your answer:",
                                 key=f"answer_{i}",
                                 height=100,
-                                placeholder=f"Your answer to: {question.strip()}",
+                                placeholder=f"Your answer to: {clean_question}",
                                 max_chars=300
                             )
-                            answers.append(f"Q{i+1}: {question.strip()}\nA{i+1}: {answer}")
+                            answers.append(f"Q{i+1}: {clean_question}\nA{i+1}: {answer}")
+                            
+                            # Add some spacing between question groups
+                            st.markdown("<br>", unsafe_allow_html=True)
                     
                     if st.button("Generate Journal Entry", type="primary", disabled=not all(answers)):
                         with st.spinner("Creating your reflective journal entry..."):
@@ -1479,25 +1573,27 @@ def main():
             
             if st.session_state.mode == "quick":
                 steps = ["Share Your Day", "Quick Questions", "Get Journal Entry"]
+                progress_html = ""
                 for i, step in enumerate(steps, 1):
                     if i <= st.session_state.step:
-                        st.markdown(f'<div class="progress-step active">{step}</div>', unsafe_allow_html=True)
+                        progress_html += f'<div class="progress-step active">{step}</div>'
                     else:
-                        st.markdown(f'<div class="progress-step">{step}</div>', unsafe_allow_html=True)
+                        progress_html += f'<div class="progress-step">{step}</div>'
+                st.markdown(progress_html, unsafe_allow_html=True)
             else:
                 steps = ["Share Your Day", "Answer Questions", "Get Journal Entry"]
+                progress_html = ""
                 for i, step in enumerate(steps, 1):
                     if i <= st.session_state.step:
-                        st.markdown(f'<div class="progress-step active">{step}</div>', unsafe_allow_html=True)
+                        progress_html += f'<div class="progress-step active">{step}</div>'
                     else:
-                        st.markdown(f'<div class="progress-step">{step}</div>', unsafe_allow_html=True)
+                        progress_html += f'<div class="progress-step">{step}</div>'
+                st.markdown(progress_html, unsafe_allow_html=True)
             
             # Display the final journal entry
             if st.session_state.journal_entry:
                 st.markdown('<h2 class="section-header">Your Journal Entry</h2>', unsafe_allow_html=True)
-                st.markdown('<div class="journal-entry">', unsafe_allow_html=True)
-                st.markdown(st.session_state.journal_entry)
-                st.markdown('</div>', unsafe_allow_html=True)
+                st.markdown(f'<div class="journal-entry" style="color: #2c3e50;">{st.session_state.journal_entry}</div>', unsafe_allow_html=True)
                 
                 # Mood tracking after journaling
                 st.markdown("---")
