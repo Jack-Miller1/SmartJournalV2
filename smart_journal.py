@@ -524,12 +524,13 @@ def get_analytics():
 def get_local_date():
     """Get current date in local timezone"""
     try:
-        # Try to get user's timezone, default to UTC if not available
-        local_tz = pytz.timezone('America/New_York')  # You can change this to your timezone
-        local_time = datetime.now(local_tz)
+        # Use Eastern Time (you can change this to your timezone)
+        local_tz = pytz.timezone('America/New_York')
+        utc_now = datetime.utcnow()
+        local_time = local_tz.fromutc(utc_now)
         return local_time
-    except:
-        # Fallback to UTC if timezone fails
+    except Exception as e:
+        # Fallback to local time if timezone fails
         return datetime.now()
 
 # Initialize database on startup
@@ -734,10 +735,11 @@ st.markdown("""
     /* Responsive design */
     @media (max-width: 768px) {
         .main-header {
-            font-size: 2.5rem;
-            word-wrap: break-word;
-            hyphens: auto;
+            font-size: 2.2rem;
+            word-wrap: normal;
+            hyphens: none;
             line-height: 1.1;
+            white-space: nowrap;
         }
         .main-subtitle {
             font-size: 1rem;
@@ -750,10 +752,11 @@ st.markdown("""
     
     @media (max-width: 480px) {
         .main-header {
-            font-size: 2rem;
-            word-wrap: break-word;
-            hyphens: auto;
+            font-size: 1.8rem;
+            word-wrap: normal;
+            hyphens: none;
             line-height: 1.1;
+            white-space: nowrap;
         }
     }
     
