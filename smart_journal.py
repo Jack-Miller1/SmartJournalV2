@@ -1459,7 +1459,7 @@ def main():
                                 clean_question = clean_question[2:].strip()
                             
                             # Display question and answer box together
-                            st.markdown(f'<div style="color: white; margin-bottom: 0.5rem;"><strong>{i+1}. {clean_question}</strong></div>', unsafe_allow_html=True)
+                            st.markdown(f'<div style="margin-bottom: 0.5rem;"><strong>{i+1}. {clean_question}</strong></div>', unsafe_allow_html=True)
                             
                             answer = st.text_area(
                                 f"Your answer:",
@@ -1533,7 +1533,7 @@ def main():
                                 clean_question = clean_question[2:].strip()
                             
                             # Display question and answer box together
-                            st.markdown(f'<div style="color: white; margin-bottom: 0.5rem;"><strong>{i+1}. {clean_question}</strong></div>', unsafe_allow_html=True)
+                            st.markdown(f'<div style="margin-bottom: 0.5rem;"><strong>{i+1}. {clean_question}</strong></div>', unsafe_allow_html=True)
                             
                             answer = st.text_area(
                                 f"Your answer:",
