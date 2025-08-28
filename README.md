@@ -1,106 +1,191 @@
-# 📝 Smart Journal Assistant
+# 📖 MindFlow
 
-A secure, AI-powered journaling app that helps you transform rough daily summaries into thoughtful, reflective journal entries.
+A modern, AI-powered journaling application built with Flask that helps you reflect on your daily experiences and track your emotional journey.
 
-## 🔐 Security Features
+## ✨ Features
 
-- **Environment Variables:** API keys stored securely in environment variables
-- **Local Database:** All journal entries stored locally on your machine
-- **No Cross-User Data:** Each user only sees their own entries
-- **Secure Input:** API key input is masked and not stored permanently
+### 🔐 **Authentication System**
+- Secure user registration and login
+- JWT-based authentication
+- Role-based access control
+- Password hashing with SHA-256
+
+### 📝 **Journaling Modes**
+- **Quick Mode**: Fast reflection with basic prompts
+- **Detailed Mode**: In-depth reflection with AI-generated questions (coming soon)
+
+### 😊 **Mood Tracking**
+- Before and after journaling mood assessment
+- Visual mood patterns over time
+- Emotional journey insights
+
+### 🎨 **Modern UI/UX**
+- Responsive design with Bootstrap 5
+- Beautiful gradient backgrounds
+- Interactive mood selection
+- Smooth animations and transitions
+
+### 📊 **Analytics & Insights**
+- Journal entry statistics
+- Mood tracking visualization
+- Personal growth metrics
+- Export functionality
 
 ## 🚀 Quick Start
 
-### 1. Install Dependencies
+### Prerequisites
+- Python 3.8+
+- pip (Python package installer)
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yourusername/MindFlow.git
+cd MindFlow
+   ```
+
+2. **Install dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Run the application**
+   ```bash
+   python run.py
+   ```
+
+4. **Access the application**
+   - Open your browser and go to: `http://localhost:5000`
+   - Default admin account: `admin` / `admin123`
+
+## 🏗️ Architecture
+
+### Backend
+- **Framework**: Flask (Python)
+- **Database**: SQLAlchemy ORM with SQLite (dev) / PostgreSQL (prod)
+- **Authentication**: Flask-Login with JWT support
+- **Database Migrations**: Flask-Migrate
+
+### Frontend
+- **CSS Framework**: Bootstrap 5
+- **Icons**: Font Awesome 6
+- **Fonts**: Google Fonts (Inter)
+- **JavaScript**: Vanilla JS with modern ES6+ features
+
+### Database Schema
+- **Users**: Authentication and profile data
+- **Journal Entries**: Daily reflections and insights
+- **Mood Entries**: Emotional tracking data
+
+## 🌐 Deployment
+
+### Local Development
 ```bash
-pip install streamlit openai
+python run.py
 ```
 
-### 2. Set Up API Key (Choose One Method)
-
-#### Method A: Environment Variables (Recommended)
-```bash
-# Copy the example file
-cp .env.example .env
-
-# Edit .env and add your OpenAI API key
-OPENAI_API_KEY=your_actual_api_key_here
-TOKEN_LIMIT=40000
-```
-
-#### Method B: Streamlit Secrets
-Create `.streamlit/secrets.toml`:
-```toml
-OPENAI_API_KEY = "your_actual_api_key_here"
-TOKEN_LIMIT = 40000
-```
-
-#### Method C: In-App Input
-The app will prompt you to enter your API key securely if not found in environment variables.
-
-### 3. Run the App
-```bash
-streamlit run smart_journal.py
-```
-
-## 🛡️ Security Best Practices
-
-1. **Never commit your API key** - The `.gitignore` file prevents accidental commits
-2. **Use environment variables** - Most secure for production deployment
-3. **Local storage only** - Your journal entries stay on your machine
-4. **No user tracking** - No analytics or data collection
-
-## 📊 Features
-
-- **Two Journaling Modes:** Quick (3-4 questions) and Detailed (6-8 questions)
-- **Natural AI Output:** Authentic, conversational journal entries
-- **Search & Filter:** Find past entries by keywords or mode
-- **Export Functionality:** Download entries as text files
-- **Usage Analytics:** Track token usage and journaling patterns
-- **Character Limits:** Prevent token abuse with input limits
+### Production Deployment
+See [DEPLOYMENT.md](DEPLOYMENT.md) for comprehensive deployment options:
+- Heroku (recommended for beginners)
+- Python Anywhere (free hosting)
+- DigitalOcean App Platform
+- AWS/GCP/Azure (enterprise)
 
 ## 🔧 Configuration
 
 ### Environment Variables
-- `OPENAI_API_KEY`: Your OpenAI API key
-- `TOKEN_LIMIT`: Monthly token usage limit (default: 40000)
+```bash
+# Security
+SECRET_KEY=your-super-secret-key-here
+JWT_SECRET_KEY=your-jwt-secret-key
 
-### Database
-- Journal entries stored in `journal_entries.db`
-- Token usage tracked in `token_usage.json`
-- Both files are local and private
+# Database
+DATABASE_URL=postgresql://user:password@host:port/database
 
-## 📝 Usage
+# OpenAI (optional)
+OPENAI_API_KEY=your-openai-api-key
 
-1. **Choose Mode:** Quick for busy days, Detailed for deep reflection
-2. **Share Your Day:** Write a rough summary of your day
-3. **Answer Questions:** Respond to AI-generated follow-up questions
-4. **Get Journal Entry:** Receive a natural, reflective journal entry
-5. **View History:** Search and browse past entries
-6. **Export:** Download entries as text files
-
-## 🛠️ Development
-
-### File Structure
-```
-smart_journal_assistant/
-├── smart_journal.py      # Main application
-├── .env.example         # Environment variables template
-├── .gitignore          # Prevents committing sensitive files
-├── README.md           # This file
-└── requirements.txt    # Python dependencies
+# Flask Environment
+FLASK_ENV=production
 ```
 
-### Security Files (Not Committed)
-- `.env` - Your actual environment variables
-- `journal_entries.db` - Your journal entries database
-- `token_usage.json` - Token usage tracking
-- `.streamlit/secrets.toml` - Streamlit secrets (if used)
+## 📱 Features in Detail
+
+### Journal Entry Creation
+1. **Choose Mode**: Quick or detailed journaling
+2. **Daily Summary**: Describe your day's events
+3. **Mood Check**: Track how you're feeling
+4. **Reflection**: Write your thoughts and insights
+5. **Save & Review**: Store and revisit your entries
+
+### Dashboard Overview
+- Recent journal entries
+- Quick action buttons
+- Mood tracking statistics
+- Personal insights
+
+### Profile Management
+- Account information
+- Journaling statistics
+- Recent activity
+- Account settings
+
+## 🔒 Security Features
+
+- **Password Hashing**: SHA-256 with salt
+- **Session Management**: Secure cookie handling
+- **CSRF Protection**: Built-in Flask security
+- **Input Validation**: Form sanitization
+- **SQL Injection Protection**: ORM-based queries
+
+## 🚧 Roadmap
+
+### Phase 1 (Current)
+- ✅ User authentication system
+- ✅ Basic journaling functionality
+- ✅ Mood tracking
+- ✅ Modern responsive UI
+
+### Phase 2 (Next)
+- 🤖 AI-powered question generation
+- 📊 Advanced analytics and charts
+- 📧 Email notifications
+- 🔄 Data import/export
+
+### Phase 3 (Future)
+- 📱 Mobile app
+- 👥 Social features
+- 🎯 Goal tracking
+- 🧠 Machine learning insights
 
 ## 🤝 Contributing
 
-This is a personal project focused on security and privacy. All data stays local to your machine.
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## 📄 License
 
-Personal use only. Keep your journal entries private and secure. 
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- **Flask** - The web framework for Python
+- **Bootstrap** - The most popular CSS framework
+- **Font Awesome** - The icon toolkit
+- **OpenAI** - AI-powered insights (coming soon)
+
+## 📞 Support
+
+- **Documentation**: [DEPLOYMENT.md](DEPLOYMENT.md)
+- **Issues**: [GitHub Issues](https://github.com/yourusername/Smart-Journal/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/yourusername/Smart-Journal/discussions)
+
+---
+
+**Built with ❤️ for mindful reflection and personal growth**
+
+Start your journaling journey today! 🚀 

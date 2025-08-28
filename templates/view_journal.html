@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+
+{% block title %}Journal Entry - {{ entry.entry_date.strftime('%B %d, %Y') }} - MindFlow{% endblock %}
+
+{% block content %}
+<div class="main-container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="mb-0">
+                                <i class="fas fa-book-open me-2"></i>{{ entry.entry_date.strftime('%B %d, %Y') }}
+                            </h4>
+                            <p class="text-muted mb-0">{{ entry.mode.title() }} Mode Entry</p>
+                        </div>
+                        <span class="badge bg-primary fs-6">{{ entry.mode.title() }}</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Daily Summary -->
+                    <div class="mb-4">
+                        <h5 class="fw-bold">
+                            <i class="fas fa-sun me-2 text-warning"></i>Daily Summary
+                        </h5>
+                        <div class="p-3 bg-light rounded">
+                            {{ entry.daily_summary }}
+                        </div>
+                    </div>
+
+                    <!-- Journal Content -->
+                    <div class="mb-4">
+                        <h5 class="fw-bold">
+                            <i class="fas fa-pen me-2 text-primary"></i>Your Reflection
+                        </h5>
+                        <div class="p-3 bg-light rounded">
+                            {{ entry.journal_content }}
+                        </div>
+                    </div>
+
+                    <!-- AI Insights -->
+                    {% if entry.answers and entry.answers != '[]' %}
+                    <div class="mb-4">
+                        <h5 class="fw-bold">
+                            <i class="fas fa-robot me-2 text-success"></i>AI Insights
+                        </h5>
+                        <div class="p-3 bg-success bg-opacity-10 rounded border border-success">
+                            <p class="text-success mb-2">
+                                <i class="fas fa-lightbulb me-2"></i>
+                                <strong>AI-powered observations about your entry:</strong>
+                            </p>
+                            <div id="aiInsights">
+                                {% set answers = entry.answers|from_json %}
+                                {% if answers %}
+                                    {% for answer in answers %}
+                                        {% if answer %}
+                                            <div class="mb-2 p-2 border-start border-success border-3 ps-3">
+                                                <i class="fas fa-comment text-success me-2"></i>
+                                                {{ answer }}
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="text-muted">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        No AI insights available for this entry.
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- AI Questions (if available) -->
+                    {% if entry.questions and entry.questions != '[]' %}
+                    <div class="mb-4">
+                        <h5 class="fw-bold">
+                            <i class="fas fa-question-circle me-2 text-info"></i>AI Reflection Questions
+                        </h5>
+                        <div class="p-3 bg-info bg-opacity-10 rounded border border-info">
+                            <!-- Debug: Raw questions value -->
+                            <!-- Raw questions: {{ entry.questions }} -->
+                            {% set questions = entry.questions|from_json %}
+                            <!-- Debug: Parsed questions -->
+                            <!-- Parsed questions: {{ questions }} -->
+                            {% if questions %}
+                                {% for question in questions %}
+                                    <div class="mb-2 p-2 border-start border-info border-3 ps-3">
+                                        <strong>{{ loop.index }}.</strong> {{ question|safe }}
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <p class="text-muted">No questions available</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Entry Details -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6 class="fw-bold">Entry Details</h6>
+                                    <p class="mb-1"><strong>Created:</strong> {{ entry.created_at.strftime('%B %d, %Y at %I:%M %p') }}</p>
+                                    {% if entry.updated_at != entry.created_at %}
+                                        <p class="mb-1"><strong>Updated:</strong> {{ entry.updated_at.strftime('%B %d, %Y at %I:%M %p') }}</p>
+                                    {% endif %}
+                                    {% if entry.tokens_used %}
+                                        <p class="mb-0"><strong>AI Tokens Used:</strong> {{ entry.tokens_used }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6 class="fw-bold">Quick Actions</h6>
+                                    <div class="d-grid gap-2">
+                                        <button class="btn btn-outline-primary btn-sm" onclick="downloadEntry()">
+                                            <i class="fas fa-download me-2"></i>Download Entry
+                                        </button>
+                                        <a href="{{ url_for('new_journal') }}" class="btn btn-primary btn-sm">
+                                            <i class="fas fa-plus me-2"></i>New Entry
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Navigation -->
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function downloadEntry() {
+    const entryText = `MindFlow Entry - {{ entry.entry_date.strftime('%B %d, %Y') }}
+
+Daily Summary:
+{{ entry.daily_summary }}
+
+Your Reflection:
+{{ entry.journal_content }}
+
+Entry Details:
+- Mode: {{ entry.mode.title() }}
+- Created: {{ entry.created_at.strftime('%B %d, %Y at %I:%M %p') }}
+{% if entry.updated_at != entry.created_at %}- Updated: {{ entry.updated_at.strftime('%B %d, %Y at %I:%M %p') }}{% endif %}
+{% if entry.tokens_used %}- AI Tokens Used: {{ entry.tokens_used }}{% endif %}
+
+---
+Generated by MindFlow
+`;
+
+    const blob = new Blob([entryText], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `journal_entry_{{ entry.entry_date.strftime('%Y-%m-%d') }}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+}
+</script>
+{% endblock %}

@@ -1,0 +1,272 @@
+{% extends "base.html" %}
+
+{% block title %}Mood Check-in - MindFlow{% endblock %}
+
+{% block content %}
+<div class="main-container">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="fas fa-heart me-2 text-danger"></i>How are you feeling today?
+                    </h4>
+                    <p class="text-muted mb-0">Quick mood check-in</p>
+                </div>
+                <div class="card-body">
+                    <!-- Mood Selection -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Select your current mood:</label>
+                        <div class="row g-3">
+                            <div class="col-6 col-md-4">
+                                <div class="mood-option" data-mood="happy">
+                                    <div class="text-center p-3 border rounded mood-card" data-mood="happy">
+                                        <div class="mood-emoji mb-2">😊</div>
+                                        <div class="mood-label">Happy</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <div class="mood-option" data-mood="calm">
+                                    <div class="text-center p-3 border rounded mood-card" data-mood="calm">
+                                        <div class="mood-emoji mb-2">😌</div>
+                                        <div class="mood-label">Calm</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <div class="mood-option" data-mood="neutral">
+                                    <div class="text-center p-3 border rounded mood-card" data-mood="neutral">
+                                        <div class="mood-emoji mb-2">😐</div>
+                                        <div class="mood-label">Neutral</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <div class="mood-option" data-mood="anxious">
+                                    <div class="text-center p-3 border rounded mood-card" data-mood="anxious">
+                                        <div class="mood-emoji mb-2">😰</div>
+                                        <div class="mood-label">Anxious</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <div class="mood-option" data-mood="sad">
+                                    <div class="text-center p-3 border rounded mood-card" data-mood="sad">
+                                        <div class="mood-emoji mb-2">😢</div>
+                                        <div class="mood-label">Sad</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <div class="mood-option" data-mood="excited">
+                                    <div class="text-center p-3 border rounded mood-card" data-mood="excited">
+                                        <div class="mood-emoji mb-2">🤩</div>
+                                        <div class="mood-label">Excited</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Optional Notes -->
+                    <div class="mb-4">
+                        <label for="moodNotes" class="form-label">Any notes about your mood? (optional)</label>
+                        <textarea 
+                            class="form-control" 
+                            id="moodNotes" 
+                            rows="3" 
+                            placeholder="What's contributing to how you're feeling today?"
+                        ></textarea>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="d-grid">
+                        <button id="submitMoodBtn" class="btn btn-primary btn-lg" disabled>
+                            <i class="fas fa-heart me-2"></i>Save Mood
+                        </button>
+                    </div>
+
+                    <!-- Today's Mood Display -->
+                    <div id="todayMood" class="mt-4" style="display: none;">
+                        <div class="alert alert-info">
+                            <h6 class="mb-2">
+                                <i class="fas fa-check-circle me-2"></i>Today's Mood Recorded
+                            </h6>
+                            <div id="moodDisplay"></div>
+                        </div>
+                    </div>
+
+                    <!-- Alert for messages -->
+                    <div id="alertContainer" class="mt-3"></div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="row mt-4">
+                <div class="col-6">
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary w-100">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                    </a>
+                </div>
+                <div class="col-6">
+                    <a href="{{ url_for('mood_analytics') }}" class="btn btn-outline-info w-100">
+                        <i class="fas fa-chart-line me-2"></i>View Analytics
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.mood-card {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.mood-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.mood-card.selected {
+    border-color: var(--primary-color);
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.mood-emoji {
+    font-size: 2rem;
+}
+
+.mood-label {
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.mood-card.selected .mood-label {
+    color: white;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let selectedMood = null;
+
+// Handle mood selection
+document.querySelectorAll('.mood-card').forEach(card => {
+    card.addEventListener('click', function() {
+        // Remove previous selection
+        document.querySelectorAll('.mood-card').forEach(c => c.classList.remove('selected'));
+        
+        // Select this mood
+        this.classList.add('selected');
+        selectedMood = this.dataset.mood;
+        
+        // Enable submit button
+        document.getElementById('submitMoodBtn').disabled = false;
+    });
+});
+
+// Handle mood submission
+document.getElementById('submitMoodBtn').addEventListener('click', async function() {
+    if (!selectedMood) {
+        showAlert('warning', 'Please select a mood first.');
+        return;
+    }
+
+    const notes = document.getElementById('moodNotes').value.trim();
+    
+    try {
+        const response = await fetch('{{ url_for("save_mood") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                mood: selectedMood,
+                notes: notes
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showAlert('success', 'Mood saved successfully!');
+            displayTodayMood(selectedMood, notes);
+            resetForm();
+        } else {
+            showAlert('danger', data.message || 'Failed to save mood. Please try again.');
+        }
+    } catch (error) {
+        console.error('Error saving mood:', error);
+        showAlert('danger', 'An error occurred. Please try again.');
+    }
+});
+
+function displayTodayMood(mood, notes) {
+    const moodDisplay = document.getElementById('moodDisplay');
+    const moodEmojis = {
+        'happy': '😊',
+        'calm': '😌',
+        'neutral': '😐',
+        'anxious': '😰',
+        'sad': '😢',
+        'excited': '🤩'
+    };
+    
+    let html = `<div class="d-flex align-items-center mb-2">
+        <span class="me-3">${moodEmojis[mood]}</span>
+        <span class="fw-bold text-capitalize">${mood}</span>
+    </div>`;
+    
+    if (notes) {
+        html += `<div class="mt-2"><strong>Notes:</strong> ${notes}</div>`;
+    }
+    
+    moodDisplay.innerHTML = html;
+    document.getElementById('todayMood').style.display = 'block';
+}
+
+function resetForm() {
+    document.querySelectorAll('.mood-card').forEach(c => c.classList.remove('selected'));
+    document.getElementById('moodNotes').value = '';
+    document.getElementById('submitMoodBtn').disabled = true;
+    selectedMood = null;
+}
+
+function showAlert(type, message) {
+    const alertContainer = document.getElementById('alertContainer');
+    alertContainer.innerHTML = `
+        <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `;
+}
+
+// Check if user already has a mood for today
+document.addEventListener('DOMContentLoaded', async function() {
+    try {
+        const response = await fetch('{{ url_for("get_mood_analytics") }}?days=1');
+        const data = await response.json();
+        
+        if (data.success && data.mood_data.length > 0) {
+            const today = new Date().toISOString().split('T')[0];
+            const todayMood = data.mood_data.find(entry => entry.entry_date === today);
+            
+            if (todayMood) {
+                displayTodayMood(todayMood.mood, todayMood.notes);
+            }
+        }
+    } catch (error) {
+        console.error('Error checking today\'s mood:', error);
+    }
+});
+</script>
+{% endblock %}

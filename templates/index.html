@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}MindFlow - Mindful Reflection Made Simple{% endblock %}
+
+{% block content %}
+<div class="main-container">
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <h1 class="hero-title">MindFlow</h1>
+        <p class="hero-subtitle">Transform your daily experiences into meaningful insights with mindful reflection</p>
+        <div class="d-flex justify-content-center gap-3">
+            <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">
+                <i class="fas fa-rocket me-2"></i>Get Started Free
+            </a>
+            <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-lg">
+                <i class="fas fa-sign-in-alt me-2"></i>Sign In
+            </a>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-brain"></i>
+                </div>
+                <h4>AI-Powered Reflection</h4>
+                <p>Get intelligent questions and insights based on your daily experiences, helping you discover patterns and growth opportunities.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h4>Mood Tracking</h4>
+                <p>Monitor your emotional journey with before and after journaling mood assessments, visualizing your emotional patterns over time.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h4>Privacy First</h4>
+                <p>Your thoughts are precious. We ensure complete privacy with secure authentication and local data storage options.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- How It Works Section -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <h2 class="text-center mb-4">How It Works</h2>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <div class="feature-icon">
+                        <i class="fas fa-edit"></i>
+                    </div>
+                    <h5>1. Share Your Day</h5>
+                    <p>Briefly describe what happened in your day</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <div class="feature-icon">
+                        <i class="fas fa-question-circle"></i>
+                    </div>
+                    <h5>2. Answer Questions</h5>
+                    <p>Respond to AI-generated reflection questions</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <div class="feature-icon">
+                        <i class="fas fa-lightbulb"></i>
+                    </div>
+                    <h5>3. Get Insights</h5>
+                    <p>Receive a thoughtful journal entry with insights</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <h5>4. Track Progress</h5>
+                    <p>Monitor your growth and emotional patterns</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CTA Section -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card text-center">
+                <div class="card-body py-5">
+                    <h3>Ready to Start Your Journey?</h3>
+                    <p class="lead">Join thousands of users who have transformed their daily reflection practice</p>
+                    <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-user-plus me-2"></i>Create Free Account
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,358 @@
+{% extends "base.html" %}
+
+{% block title %}New Journal Entry - MindFlow{% endblock %}
+
+{% block content %}
+<div class="main-container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="fas fa-edit me-2"></i>New Journal Entry
+                    </h4>
+                    <p class="text-muted mb-0">AI-powered journaling to help you reflect deeper</p>
+                </div>
+                <div class="card-body">
+                    <!-- Step 1: Mode Selection -->
+                    <div id="step1" class="mb-4">
+                        <label class="form-label fw-bold">Journaling Mode</label>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check border rounded p-3 h-100">
+                                    <input class="form-check-input" type="radio" name="mode" id="quickMode" value="quick" checked>
+                                    <label class="form-check-label" for="quickMode">
+                                        <h6 class="mb-2">Quick Mode</h6>
+                                        <p class="text-muted small mb-0">3 focused questions for busy days</p>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check border rounded p-3 h-100">
+                                    <input class="form-check-input" type="radio" name="mode" id="detailedMode" value="detailed">
+                                    <label class="form-check-label" for="detailedMode">
+                                        <h6 class="mb-2">Detailed Mode</h6>
+                                        <p class="text-muted small mb-0">6 deep questions for thorough reflection</p>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <button class="btn btn-primary" onclick="nextStep()">
+                                <i class="fas fa-arrow-right me-2"></i>Continue
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Daily Summary Input -->
+                    <div id="step2" class="mb-4" style="display: none;">
+                        <h5 class="fw-bold mb-3">
+                            <i class="fas fa-sun me-2 text-warning"></i>What happened today?
+                        </h5>
+                        <div class="mb-3">
+                            <textarea 
+                                class="form-control" 
+                                id="dailySummary" 
+                                name="dailySummary" 
+                                rows="4" 
+                                placeholder="Give me a brief summary of your day - the key events, challenges, or highlights..."
+                                required
+                            ></textarea>
+                            <div class="form-text">Keep it concise but include the main things that happened</div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-secondary" onclick="previousStep()">
+                                <i class="fas fa-arrow-left me-2"></i>Back
+                            </button>
+                            <button class="btn btn-primary" onclick="submitSummary()">
+                                <i class="fas fa-robot me-2"></i>Get AI Questions
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: AI Questions and Answers -->
+                    <div id="step3" class="mb-4" style="display: none;">
+                        <h5 class="fw-bold mb-3">
+                            <i class="fas fa-robot me-2 text-primary"></i>AI Reflection Questions
+                        </h5>
+                        
+                        <!-- Daily Summary Reference -->
+                        <div class="mb-4 p-3 bg-light rounded border">
+                            <h6 class="fw-bold mb-2">
+                                <i class="fas fa-sun me-2 text-warning"></i>Your Daily Summary
+                            </h6>
+                            <p id="summaryReference" class="mb-0 text-muted"></p>
+                        </div>
+                        
+                        <div id="aiQuestionsContainer">
+                            <div class="text-center">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p class="mt-2">AI is generating personalized questions based on your summary...</p>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2 mt-3">
+                            <button class="btn btn-outline-secondary" onclick="previousStep()">
+                                <i class="fas fa-arrow-left me-2"></i>Back
+                            </button>
+                            <button id="submitAnswersBtn" class="btn btn-primary" onclick="submitAnswers()" style="display: none;">
+                                <i class="fas fa-magic me-2"></i>Generate AI Summary
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Step 4: AI Summary and Final Submission -->
+                    <div id="step4" class="mb-4" style="display: none;">
+                        <h5 class="fw-bold mb-3">
+                            <i class="fas fa-file-alt me-2 text-success"></i>Your AI-Generated Journal Summary
+                        </h5>
+                        <div id="aiSummaryContainer">
+                            <div class="text-center">
+                                <div class="spinner-border text-success" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p class="mt-2">AI is creating your journal summary...</p>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2 mt-3">
+                            <button class="btn btn-outline-secondary" onclick="previousStep()">
+                                <i class="fas fa-arrow-left me-2"></i>Back
+                            </button>
+                            <button id="saveJournalBtn" class="btn btn-success" onclick="saveJournal()" style="display: none;">
+                                <i class="fas fa-save me-2"></i>Save Journal Entry
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Alert for messages -->
+                    <div id="alertContainer" class="mt-3"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentStep = 1;
+let selectedMode = 'quick';
+let aiQuestions = [];
+let userAnswers = [];
+let aiSummary = '';
+
+// Handle mode selection
+document.querySelectorAll('input[name="mode"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        selectedMode = this.value;
+    });
+});
+
+function nextStep() {
+    if (currentStep === 1) {
+        document.getElementById('step1').style.display = 'none';
+        document.getElementById('step2').style.display = 'block';
+        currentStep = 2;
+    }
+}
+
+function previousStep() {
+    if (currentStep === 2) {
+        document.getElementById('step2').style.display = 'none';
+        document.getElementById('step1').style.display = 'block';
+        currentStep = 1;
+    } else if (currentStep === 3) {
+        document.getElementById('step3').style.display = 'none';
+        document.getElementById('step2').style.display = 'block';
+        currentStep = 2;
+    } else if (currentStep === 4) {
+        document.getElementById('step4').style.display = 'none';
+        document.getElementById('step3').style.display = 'block';
+        currentStep = 3;
+    }
+}
+
+async function submitSummary() {
+    const summary = document.getElementById('dailySummary').value.trim();
+    if (!summary) {
+        showAlert('danger', 'Please provide a summary of your day.');
+        return;
+    }
+
+    // Show step 3
+    document.getElementById('step2').style.display = 'none';
+    document.getElementById('step3').style.display = 'block';
+    currentStep = 3;
+
+    // Display the summary reference
+    document.getElementById('summaryReference').textContent = summary;
+
+    // Generate AI questions
+    await generateAIQuestions(summary);
+}
+
+async function generateAIQuestions(dailySummary) {
+    try {
+        const response = await fetch('{{ url_for("generate_ai_questions") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                daily_summary: dailySummary,
+                mode: selectedMode
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            aiQuestions = data.questions;
+            displayAIQuestions(aiQuestions);
+        } else {
+            showAlert('danger', 'Failed to generate AI questions. Please try again.');
+        }
+    } catch (error) {
+        console.error('Error generating questions:', error);
+        showAlert('danger', 'Failed to generate AI questions. Please try again.');
+    }
+}
+
+function displayAIQuestions(questions) {
+    const container = document.getElementById('aiQuestionsContainer');
+    
+    let html = '<div class="space-y-3">';
+    questions.forEach((question, index) => {
+        html += `
+            <div class="mb-3 p-3 border rounded">
+                <label class="form-label fw-bold">
+                    <i class="fas fa-question-circle text-primary me-2"></i>${question}
+                </label>
+                <textarea 
+                    class="form-control" 
+                    name="answer_${index}" 
+                    rows="3" 
+                    placeholder="Share your thoughts on this question..."
+                    required
+                ></textarea>
+            </div>
+        `;
+    });
+    html += '</div>';
+    
+    container.innerHTML = html;
+    document.getElementById('submitAnswersBtn').style.display = 'block';
+}
+
+async function submitAnswers() {
+    // Collect all answers
+    userAnswers = [];
+    for (let i = 0; i < aiQuestions.length; i++) {
+        const answer = document.querySelector(`[name="answer_${i}"]`).value.trim();
+        if (!answer) {
+            showAlert('danger', 'Please answer all questions before continuing.');
+            return;
+        }
+        userAnswers.push(answer);
+    }
+
+    // Show step 4
+    document.getElementById('step3').style.display = 'none';
+    document.getElementById('step4').style.display = 'block';
+    currentStep = 4;
+
+    // Generate AI summary
+    await generateAISummary();
+}
+
+async function generateAISummary() {
+    const dailySummary = document.getElementById('dailySummary').value;
+    
+    try {
+        const response = await fetch('{{ url_for("generate_journal_summary") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                daily_summary: dailySummary,
+                user_answers: userAnswers,
+                mode: selectedMode
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            aiSummary = data.summary;
+            displayAISummary(aiSummary);
+        } else {
+            showAlert('danger', 'Failed to generate AI summary. Please try again.');
+        }
+    } catch (error) {
+        console.error('Error generating summary:', error);
+        showAlert('danger', 'Failed to generate AI summary. Please try again.');
+    }
+}
+
+function displayAISummary(summary) {
+    const container = document.getElementById('aiSummaryContainer');
+    container.innerHTML = `
+        <div class="p-3 bg-success bg-opacity-10 rounded border border-success">
+            <div class="mb-2">
+                <i class="fas fa-lightbulb text-success me-2"></i>
+                <strong>AI Summary:</strong>
+            </div>
+            <div class="p-3 bg-white rounded">
+                ${summary}
+            </div>
+        </div>
+    `;
+    document.getElementById('saveJournalBtn').style.display = 'block';
+}
+
+async function saveJournal() {
+    const dailySummary = document.getElementById('dailySummary').value;
+    
+    try {
+        const response = await fetch('{{ url_for("create_journal") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                daily_summary: dailySummary,
+                ai_questions: aiQuestions,
+                user_answers: userAnswers,
+                ai_summary: aiSummary,
+                mode: selectedMode
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showAlert('success', 'Journal entry saved successfully! Redirecting to dashboard...');
+            setTimeout(() => {
+                window.location.href = '{{ url_for("dashboard") }}';
+            }, 2000);
+        } else {
+            showAlert('danger', data.message || 'Failed to save journal entry. Please try again.');
+        }
+    } catch (error) {
+        showAlert('danger', 'An error occurred. Please try again.');
+    }
+}
+
+function showAlert(type, message) {
+    const alertContainer = document.getElementById('alertContainer');
+    alertContainer.innerHTML = `
+        <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `;
+}
+</script>
+{% endblock %}
