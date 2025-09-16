@@ -39,8 +39,11 @@ if __name__ == '__main__':
     print("👤 Default admin: admin / admin123")
     print("⏹️  Press Ctrl+C to stop")
     
+    # Get port from Railway environment variable, default to 5000 for local development
+    port = int(os.environ.get('PORT', 5000))
+    
     app.run(
         host='0.0.0.0',
-        port=5000,
-        debug=True
+        port=port,
+        debug=False  # Set to False for production
     )
