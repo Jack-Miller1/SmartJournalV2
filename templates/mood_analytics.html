@@ -24,8 +24,8 @@
                                 <option value="90">Last 3 months</option>
                             </select>
                         </div>
-                        <div class="col-md-6">
-                            <a href="{{ url_for('mood_checkin') }}" class="btn btn-primary float-end">
+                        <div class="col-md-6 d-flex justify-content-center">
+                            <a href="{{ url_for('mood_checkin') }}" class="btn btn-primary">
                                 <i class="fas fa-heart me-2"></i>Check-in Mood
                             </a>
                         </div>
@@ -217,53 +217,62 @@
 
 @media (max-width: 768px) {
     .mood-calendar {
-        gap: 1px;
+        gap: 2px;
         width: 100%;
         max-width: 100%;
-        padding: 0;
+        padding: 0 10px;
         margin: 0;
         box-sizing: border-box;
     }
     
     .calendar-day {
-        font-size: 11px;
-        height: 32px;
-        width: calc(100% / 7);
+        font-size: 12px;
+        height: 40px;
+        min-width: 0;
         box-sizing: border-box;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
     
     .calendar-header-day {
-        font-size: 9px;
-        padding: 6px 0;
+        font-size: 11px;
+        padding: 8px 0;
         height: auto;
-        width: calc(100% / 7);
+        min-width: 0;
         box-sizing: border-box;
+        text-align: center;
     }
     
     .calendar-header {
-        gap: 1px;
+        gap: 2px;
         margin-bottom: 5px;
         display: grid;
         grid-template-columns: repeat(7, 1fr);
         width: 100%;
         box-sizing: border-box;
+        padding: 0 10px;
     }
 }
 
 @media (max-width: 480px) {
     .mood-calendar {
         gap: 1px;
-        padding: 0;
+        padding: 0 5px;
     }
     
     .calendar-day {
-        font-size: 9px;
-        height: 28px;
+        font-size: 10px;
+        height: 35px;
     }
     
     .calendar-header-day {
-        font-size: 8px;
-        padding: 4px 0;
+        font-size: 9px;
+        padding: 6px 0;
+    }
+    
+    .calendar-header {
+        padding: 0 5px;
     }
 }
 </style>
