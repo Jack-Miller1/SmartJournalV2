@@ -650,39 +650,6 @@ def change_admin_password():
     
     return jsonify({'success': True, 'message': 'Password updated successfully'})
 
-@app.route('/admin/reset-password', methods=['GET', 'POST'])
-def reset_admin_password():
-    """Temporary route to reset admin password - REMOVE AFTER USE"""
-    try:
-        if request.method == 'POST':
-            data = request.get_json()
-            new_password = data.get('new_password', 'AdminSecure2024!')
-            
-            # Find admin user
-            admin = User.query.filter_by(username='admin').first()
-            if admin:
-                admin.password_hash = generate_password_hash(new_password)
-                db.session.commit()
-                response = jsonify({
-                    'success': True, 
-                    'message': f'Admin password updated to: {new_password}',
-                    'new_password': new_password
-                })
-                response.headers.add('Access-Control-Allow-Origin', '*')
-                response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
-                return response
-            else:
-                response = jsonify({'success': False, 'message': 'Admin user not found'})
-                response.headers.add('Access-Control-Allow-Origin', '*')
-                return response
-        
-        response = jsonify({'message': 'Send POST request with new_password to reset admin password'})
-        response.headers.add('Access-Control-Allow-Origin', '*')
-        return response
-    except Exception as e:
-        response = jsonify({'success': False, 'message': f'Error: {str(e)}'})
-        response.headers.add('Access-Control-Allow-Origin', '*')
-        return response
 
 @app.route('/dashboard')
 @login_required

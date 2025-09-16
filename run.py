@@ -29,11 +29,7 @@ if __name__ == '__main__':
             db.session.commit()
             print("👤 Admin user created: admin / admin123")
         else:
-            # Update existing admin password
-            from werkzeug.security import generate_password_hash
-            admin.password_hash = generate_password_hash('AdminSecure2024!')
-            db.session.commit()
-            print("👤 Admin user already exists - password updated to: AdminSecure2024!")
+            print("👤 Admin user already exists")
         
         print("✅ Database initialized successfully!")
     
