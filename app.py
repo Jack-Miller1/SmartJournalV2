@@ -104,14 +104,14 @@ class AIService:
             
             return questions, response.usage.total_tokens
             
-            except Exception as e:
-                # Don't expose API key in error messages
-                error_msg = str(e).lower()
-                if 'api' in error_msg and 'key' in error_msg:
-                    print("AI Error: API authentication issue")
-                else:
-                    print(f"AI Error: {e}")
-                return self._get_fallback_questions(mode), 0
+        except Exception as e:
+            # Don't expose API key in error messages
+            error_msg = str(e).lower()
+            if 'api' in error_msg and 'key' in error_msg:
+                print("AI Error: API authentication issue")
+            else:
+                print(f"AI Error: {e}")
+            return self._get_fallback_questions(mode), 0
     
     def enhance_journal_entry(self, daily_summary, journal_content, mode='quick'):
         """Enhance journal entry with AI insights"""
