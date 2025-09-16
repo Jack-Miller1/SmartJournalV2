@@ -416,9 +416,11 @@ if database_url:
     if database_url.startswith('postgres://'):
         database_url = database_url.replace('postgres://', 'postgresql://', 1)
     app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+    print(f"Using PostgreSQL database: {database_url[:50]}...")
 else:
     # Development: SQLite
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///smart_journal.db'
+    print("Using SQLite database for local development")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Custom Jinja2 filters
