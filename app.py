@@ -626,6 +626,52 @@ def logout():
     logout_user()
     return redirect(url_for('index'))
 
+@app.route('/admin/change-password', methods=['POST'])
+@login_required
+def change_admin_password():
+    """Change admin password (admin only)"""
+    if current_user.role != 'admin':
+        return jsonify({'success': False, 'message': 'Admin access required'})
+    
+    data = request.get_json()
+    new_password = data.get('new_password')
+    
+    if not new_password:
+        return jsonify({'success': False, 'message': 'New password required'})
+    
+    # Validate password strength
+    is_strong, password_msg = validate_password_strength(new_password)
+    if not is_strong:
+        return jsonify({'success': False, 'message': password_msg})
+    
+    # Update password
+    current_user.password_hash = generate_password_hash(new_password)
+    db.session.commit()
+    
+    return jsonify({'success': True, 'message': 'Password updated successfully'})
+
+@app.route('/admin/reset-password', methods=['GET', 'POST'])
+def reset_admin_password():
+    """Temporary route to reset admin password - REMOVE AFTER USE"""
+    if request.method == 'POST':
+        data = request.get_json()
+        new_password = data.get('new_password', 'AdminSecure2024!')
+        
+        # Find admin user
+        admin = User.query.filter_by(username='admin').first()
+        if admin:
+            admin.password_hash = generate_password_hash(new_password)
+            db.session.commit()
+            return jsonify({
+                'success': True, 
+                'message': f'Admin password updated to: {new_password}',
+                'new_password': new_password
+            })
+        else:
+            return jsonify({'success': False, 'message': 'Admin user not found'})
+    
+    return jsonify({'message': 'Send POST request with new_password to reset admin password'})
+
 @app.route('/dashboard')
 @login_required
 def dashboard():
