@@ -33,27 +33,32 @@ class AIService:
             
         try:
             if mode == 'quick':
-                prompt = f"""Based on this daily summary: "{daily_summary}"
+                prompt = f"""You are a warm, supportive journaling companion. Based on this person's day: "{daily_summary}"
+
+                Generate exactly 3 personalized reflection questions that feel like they're coming from a caring friend who knows them well. 
                 
-                Generate 3-5 thoughtful reflection questions that will help the person gain insights about their day. 
-                Focus on:
-                - Emotional awareness
-                - Personal growth opportunities
-                - Pattern recognition
-                - Future planning
+                Guidelines:
+                - Make questions specific to their actual experiences and activities mentioned
+                - Use warm, conversational language ("How did that feel?" vs "What emotions did you experience?")
+                - Focus on emotional processing and self-discovery
+                - Avoid overly clinical or therapy-like language
+                - Make them feel seen and understood
+                - Reference specific events or activities they mentioned
+                - Ask about emotional transitions or mood changes they might have experienced
                 
                 Return only the questions, one per line, without numbering or extra text."""
             else:
-                prompt = f"""Based on this daily summary: "{daily_summary}"
+                prompt = f"""You are a thoughtful journaling companion helping someone do deep self-reflection. Based on their day: "{daily_summary}"
+
+                Generate exactly 5 personalized questions that encourage profound self-exploration. 
                 
-                Generate 5-8 deep reflection questions for detailed journaling. 
-                Focus on:
-                - Emotional exploration and processing
-                - Personal values and beliefs
-                - Relationship dynamics
-                - Life lessons and wisdom
-                - Future goals and aspirations
-                - Self-compassion and growth mindset
+                Guidelines:
+                - Make questions deeply personal and specific to their situation
+                - Use warm, encouraging language that invites vulnerability
+                - Focus on emotional depth, personal growth, and life insights
+                - Help them connect their experiences to broader life patterns
+                - Encourage self-compassion and understanding
+                - Make questions that feel like they're coming from someone who truly cares
                 
                 Return only the questions, one per line, without numbering or extra text."""
             
@@ -160,17 +165,19 @@ class AIService:
             return self._get_fallback_summary(daily_summary, mode), 0
             
         try:
-            prompt = f"""Based on this daily summary: "{daily_summary}"
+            prompt = f"""You're helping someone create a meaningful summary of their day: "{daily_summary}"
+
+            Write a thoughtful summary that captures the essence of their experience. 
             
-            Create a concise but comprehensive summary that captures the key points, emotions, and insights. 
-            Focus on:
-            - Main events and experiences
-            - Emotional highlights
-            - Key learnings or realizations
-            - Overall tone and mood
+            Guidelines:
+            - Focus on what matters most to them emotionally and personally
+            - Highlight key moments, feelings, and insights
+            - Use warm, reflective language that honors their experience
+            - Help them see patterns or growth in their day
+            - Make it feel like a caring friend's perspective on their day
+            - Avoid being overly clinical or generic
             
-            Make it conversational and helpful, as if you're summarizing for the person to save them time.
-            Keep it under 3-4 sentences for quick mode, or 5-6 sentences for detailed mode."""
+            Write as if you're helping them remember and appreciate their day. {f"Keep it to 2-3 sentences for quick mode" if mode == 'quick' else "4-5 sentences for detailed mode"}."""
             
             response = self.client.chat.completions.create(
                 model="gpt-4o-mini",
@@ -192,17 +199,21 @@ class AIService:
             return self._get_fallback_assistant_response(mode), 0
             
         try:
-            prompt = f"""Daily Summary: {daily_summary}
-            Journal Content: {journal_content}
+            prompt = f"""You're a warm, supportive friend who just read someone's journal entry about their day.
+
+            Their day: {daily_summary}
+            What they wrote: {journal_content}
             
-            Act as a supportive journaling assistant. Provide:
-            - Encouraging feedback on their reflection
-            - Thought-provoking follow-up questions
-            - Insights about patterns or themes you notice
-            - Suggestions for deeper exploration
+            Respond as a caring friend would:
+            - Show genuine understanding and empathy
+            - Reflect back what you heard with warmth
+            - Offer gentle insights or observations
+            - Ask one thoughtful follow-up question if appropriate
+            - Validate their experience and feelings
+            - Be encouraging without being overly positive
             
-            Be conversational, supportive, and helpful. Make them feel heard and understood.
-            Keep it concise but meaningful."""
+            Sound like someone who truly cares about them, not an AI or therapist.
+            Keep it conversational and heartfelt."""
             
             response = self.client.chat.completions.create(
                 model="gpt-4o-mini",
@@ -282,29 +293,31 @@ class AIService:
             
         try:
             if mode == 'quick':
-                prompt = f"""Based on this daily summary: "{daily_summary}"
+                prompt = f"""You're having a heartfelt conversation with someone about their day: "{daily_summary}"
+
+                Ask exactly 3 follow-up questions that show you're really listening and care about their experience. 
                 
-                Generate exactly 3 thoughtful questions that help the person explore their emotions and feelings about what happened. 
-                Focus on:
-                - How they felt about the events
-                - Emotional responses and reactions
-                - Personal insights and learnings
+                Guidelines:
+                - Be genuinely curious about their emotional experience
+                - Use natural, conversational language ("That sounds..." "I'm curious about...")
+                - Acknowledge both positive and difficult emotions
+                - Make them feel heard and validated
+                - Avoid generic questions - be specific to their situation
                 
-                Make questions conversational and emotion-focused. Don't be overly positive - acknowledge that emotions can be complex.
                 Return only the questions, one per line, without numbering or extra text."""
             else:
-                prompt = f"""Based on this daily summary: "{daily_summary}"
+                prompt = f"""You're having a deep, meaningful conversation with someone about their day: "{daily_summary}"
+
+                Ask exactly 5 thoughtful follow-up questions that help them process their experience more deeply.
                 
-                Generate exactly 6 deep questions that help the person thoroughly explore their emotions and feelings about what happened. 
-                Focus on:
-                - How they felt about the events
-                - Emotional responses and reactions
-                - Personal insights and learnings
-                - How they handled difficult situations
-                - What they learned about themselves
-                - Future considerations
+                Guidelines:
+                - Show genuine empathy and understanding
+                - Use warm, supportive language that invites sharing
+                - Help them explore the emotional layers of their experience
+                - Encourage self-reflection and personal growth
+                - Validate their feelings while gently encouraging deeper exploration
+                - Make questions that feel like they're coming from someone who truly understands
                 
-                Make questions conversational and emotion-focused. Don't be overly positive - acknowledge that emotions can be complex and challenging.
                 Return only the questions, one per line, without numbering or extra text."""
             
             response = self.client.chat.completions.create(
@@ -329,21 +342,22 @@ class AIService:
             return self._get_fallback_conversational_summary(daily_summary, user_answers, mode), 0
             
         try:
-            prompt = f"""Daily Summary: {daily_summary}
+            prompt = f"""You're a caring friend who just listened to someone share about their day. Here's what they told you:
+
+            Daily Summary: {daily_summary}
             
-            User's Answers to Questions:
+            Their responses to your questions:
             {chr(10).join([f"Q{i+1}: {answer}" for i, answer in enumerate(user_answers)])}
             
-            Create a conversational summary that:
-            - Captures the key events from their daily summary
-            - Incorporates their emotional responses and feelings
-            - Preserves the raw, authentic emotions they expressed
-            - Doesn't sugarcoat or make everything overly positive
-            - Shows understanding of their emotional experience
-            - Keeps their original language and emotional tone
+            Write a warm, empathetic summary that:
+            - Reflects back what you heard with genuine understanding
+            - Honors their emotional experience without judgment
+            - Uses their own words and emotional tone when possible
+            - Shows you truly listened and care about their experience
+            - Validates their feelings while highlighting any growth or insights
+            - Sounds like a supportive friend, not a therapist or AI
             
-            Make it sound like a caring friend summarizing their journal entry back to them.
-            Keep it under 4-5 sentences for quick mode, or 6-7 sentences for detailed mode."""
+            Keep it conversational and heartfelt. {f"3-4 sentences for quick mode" if mode == 'quick' else "5-6 sentences for detailed mode"}."""
             
             response = self.client.chat.completions.create(
                 model="gpt-4o-mini",

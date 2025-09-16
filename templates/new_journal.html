@@ -57,8 +57,21 @@
                                 rows="4" 
                                 placeholder="Give me a brief summary of your day - the key events, challenges, or highlights..."
                                 required
+                                minlength="50"
                             ></textarea>
-                            <div class="form-text">Keep it concise but include the main things that happened</div>
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Please write at least 50 characters (about 2-3 sentences) so the AI can generate meaningful questions for you.
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mt-2">
+                                <div id="summaryError" class="text-danger small" style="display: none;">
+                                    <i class="fas fa-exclamation-triangle me-1"></i>
+                                    Please provide more details about your day (at least 50 characters).
+                                </div>
+                                <div id="charCount" class="text-muted small">
+                                    <span id="currentCount">0</span>/50 characters minimum
+                                </div>
+                            </div>
                         </div>
                         <div class="d-flex gap-2">
                             <button class="btn btn-outline-secondary" onclick="previousStep()">
@@ -175,8 +188,20 @@ function previousStep() {
 
 async function submitSummary() {
     const summary = document.getElementById('dailySummary').value.trim();
+    const errorDiv = document.getElementById('summaryError');
+    
+    // Hide any previous error
+    errorDiv.style.display = 'none';
+    
     if (!summary) {
         showAlert('danger', 'Please provide a summary of your day.');
+        return;
+    }
+    
+    // Check minimum length
+    if (summary.length < 50) {
+        errorDiv.style.display = 'block';
+        showAlert('warning', 'Please provide more details about your day (at least 50 characters) so the AI can generate meaningful questions.');
         return;
     }
 
@@ -354,5 +379,26 @@ function showAlert(type, message) {
         </div>
     `;
 }
+
+// Add character counter for daily summary
+document.addEventListener('DOMContentLoaded', function() {
+    const dailySummaryTextarea = document.getElementById('dailySummary');
+    const charCountSpan = document.getElementById('currentCount');
+    
+    if (dailySummaryTextarea && charCountSpan) {
+        dailySummaryTextarea.addEventListener('input', function() {
+            const count = this.value.length;
+            charCountSpan.textContent = count;
+            
+            // Change color based on count
+            const charCountDiv = document.getElementById('charCount');
+            if (count < 50) {
+                charCountDiv.className = 'text-danger small';
+            } else {
+                charCountDiv.className = 'text-success small';
+            }
+        });
+    }
+});
 </script>
 {% endblock %}

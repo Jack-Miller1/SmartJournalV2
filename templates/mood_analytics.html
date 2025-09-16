@@ -67,21 +67,40 @@
                         </div>
                     </div>
 
-                    <!-- Main Chart -->
+                    <!-- Mood Calendar -->
                     <div class="row mb-4">
                         <div class="col-12">
                             <div class="card">
-                                <div class="card-header">
-                                    <h6 class="mb-0">Mood Trends Over Time</h6>
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h6 class="mb-0">Mood Calendar</h6>
+                                    <div class="btn-group" role="group">
+                                        <button type="button" class="btn btn-sm btn-outline-primary" id="prevMonth">
+                                            <i class="fas fa-chevron-left"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-primary" id="nextMonth">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </button>
+                                    </div>
                                 </div>
                                 <div class="card-body">
-                                    <div id="moodChart" style="height: 400px;"></div>
+                                    <div id="moodCalendar" class="mood-calendar"></div>
+                                    <div class="mt-3">
+                                        <h6>Legend:</h6>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            <span class="badge bg-success">😊 Happy</span>
+                                            <span class="badge bg-info">😌 Calm</span>
+                                            <span class="badge bg-secondary">😐 Neutral</span>
+                                            <span class="badge bg-warning">😰 Anxious</span>
+                                            <span class="badge bg-danger">😢 Sad</span>
+                                            <span class="badge bg-light text-dark">📅 No Data</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Mood Distribution -->
+                    <!-- Mood Insights -->
                     <div class="row mb-4">
                         <div class="col-md-6">
                             <div class="card">
@@ -115,6 +134,105 @@
 </div>
 {% endblock %}
 
+{% block extra_css %}
+<style>
+.mood-calendar {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 3px;
+    margin-bottom: 20px;
+}
+
+.calendar-day {
+    aspect-ratio: 1;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    min-height: 50px;
+}
+
+.calendar-day:hover {
+    transform: scale(1.05);
+    z-index: 10;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.calendar-day.empty {
+    background-color: #f9fafb;
+    color: #9ca3af;
+}
+
+.calendar-day.has-mood {
+    font-weight: bold;
+}
+
+/* Mood-specific colors */
+.mood-happy { background-color: #10b981; color: white; }
+.mood-excited { background-color: #10b981; color: white; }
+.mood-calm { background-color: #3b82f6; color: white; }
+.mood-neutral { background-color: #6b7280; color: white; }
+.mood-anxious { background-color: #f59e0b; color: white; }
+.mood-sad { background-color: #ef4444; color: white; }
+
+.calendar-header {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 3px;
+    margin-bottom: 15px;
+}
+
+.calendar-header-day {
+    text-align: center;
+    font-weight: bold;
+    color: #6b7280;
+    padding: 12px 0;
+    font-size: 14px;
+    background-color: #f8fafc;
+    border-radius: 6px;
+}
+
+.mood-tooltip {
+    position: absolute;
+    background: rgba(0,0,0,0.9);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 1000;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.mood-tooltip.show {
+    opacity: 1;
+}
+
+@media (max-width: 768px) {
+    .mood-calendar {
+        gap: 2px;
+    }
+    
+    .calendar-day {
+        font-size: 14px;
+        min-height: 40px;
+    }
+    
+    .calendar-header-day {
+        font-size: 12px;
+        padding: 8px 0;
+    }
+}
+</style>
+{% endblock %}
+
 {% block extra_js %}
 <!-- Plotly.js for charts -->
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
@@ -123,16 +241,8 @@
 // Global variables
 let moodData = [];
 let currentDateRange = 30;
-
-// Mood score mapping for charts
-const moodScores = {
-    'happy': 5,
-    'excited': 5,
-    'calm': 4,
-    'neutral': 3,
-    'anxious': 2,
-    'sad': 1
-};
+let currentMonth = new Date().getMonth();
+let currentYear = new Date().getFullYear();
 
 // Mood emojis for display
 const moodEmojis = {
@@ -144,6 +254,15 @@ const moodEmojis = {
     'sad': '😢'
 };
 
+// Month names
+const monthNames = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+];
+
+// Day names
+const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
 // Initialize the page
 document.addEventListener('DOMContentLoaded', function() {
     loadMoodData();
@@ -152,6 +271,25 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('dateRange').addEventListener('change', function() {
         currentDateRange = parseInt(this.value);
         loadMoodData();
+    });
+    
+    // Calendar navigation
+    document.getElementById('prevMonth').addEventListener('click', function() {
+        currentMonth--;
+        if (currentMonth < 0) {
+            currentMonth = 11;
+            currentYear--;
+        }
+        updateMoodCalendar();
+    });
+    
+    document.getElementById('nextMonth').addEventListener('click', function() {
+        currentMonth++;
+        if (currentMonth > 11) {
+            currentMonth = 0;
+            currentYear++;
+        }
+        updateMoodCalendar();
     });
 });
 
@@ -163,7 +301,8 @@ async function loadMoodData() {
         if (data.success) {
             moodData = data.mood_data;
             updateOverviewCards();
-            updateCharts();
+            updateMoodCalendar();
+            updateMoodDistributionChart();
             updateRecentMoods();
         } else {
             console.error('Failed to load mood data:', data.message);
@@ -196,17 +335,39 @@ function updateOverviewCards() {
     // Current streak (consecutive days with mood entries)
     let streak = 0;
     const today = new Date();
-    for (let i = 0; i < 30; i++) {
-        const checkDate = new Date(today);
-        checkDate.setDate(today.getDate() - i);
-        const dateStr = checkDate.toISOString().split('T')[0];
+    const todayStr = today.toISOString().split('T')[0];
+    
+    // Check if today has a mood entry
+    if (moodData.some(entry => entry.entry_date === todayStr)) {
+        streak = 1;
         
-        if (moodData.some(entry => entry.entry_date === dateStr)) {
-            streak++;
-        } else {
-            break;
+        // Count backwards from yesterday
+        for (let i = 1; i <= 30; i++) {
+            const checkDate = new Date(today);
+            checkDate.setDate(today.getDate() - i);
+            const dateStr = checkDate.toISOString().split('T')[0];
+            
+            if (moodData.some(entry => entry.entry_date === dateStr)) {
+                streak++;
+            } else {
+                break;
+            }
+        }
+    } else {
+        // If today doesn't have an entry, check from yesterday
+        for (let i = 1; i <= 30; i++) {
+            const checkDate = new Date(today);
+            checkDate.setDate(today.getDate() - i);
+            const dateStr = checkDate.toISOString().split('T')[0];
+            
+            if (moodData.some(entry => entry.entry_date === dateStr)) {
+                streak++;
+            } else {
+                break;
+            }
         }
     }
+    
     document.getElementById('currentStreak').textContent = `${streak} days`;
     
     // Mood variety (unique moods)
@@ -214,42 +375,129 @@ function updateOverviewCards() {
     document.getElementById('moodVariety').textContent = `${uniqueMoods.size} moods`;
 }
 
-function updateCharts() {
+function updateMoodCalendar() {
+    const calendarContainer = document.getElementById('moodCalendar');
+    
+    // Create mood data lookup
+    const moodLookup = {};
+    moodData.forEach(entry => {
+        moodLookup[entry.entry_date] = entry.mood;
+    });
+    
+    // Get first day of month and number of days
+    const firstDay = new Date(currentYear, currentMonth, 1);
+    const lastDay = new Date(currentYear, currentMonth + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay();
+    
+    // Create complete calendar with header and days in one grid
+    let calendarHTML = `
+        <div class="text-center mb-3">
+            <h5>${monthNames[currentMonth]} ${currentYear}</h5>
+        </div>
+        <div class="mood-calendar">
+    `;
+    
+    // Add day headers first
+    dayNames.forEach(day => {
+        calendarHTML += `<div class="calendar-header-day">${day}</div>`;
+    });
+    
+    // Add empty cells for days before the first day of the month
+    for (let i = 0; i < startingDayOfWeek; i++) {
+        calendarHTML += '<div class="calendar-day empty"></div>';
+    }
+    
+    // Add days of the month
+    for (let day = 1; day <= daysInMonth; day++) {
+        const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const mood = moodLookup[dateStr];
+        
+        if (mood) {
+            const emoji = moodEmojis[mood];
+            calendarHTML += `
+                <div class="calendar-day has-mood mood-${mood}" 
+                     data-mood="${mood}" 
+                     data-date="${dateStr}"
+                     title="${mood.charAt(0).toUpperCase() + mood.slice(1)} - ${new Date(dateStr).toLocaleDateString()}">
+                    ${emoji}
+                </div>
+            `;
+        } else {
+            calendarHTML += `
+                <div class="calendar-day empty" 
+                     data-date="${dateStr}"
+                     title="No mood data - ${new Date(dateStr).toLocaleDateString()}">
+                    ${day}
+                </div>
+            `;
+        }
+    }
+    
+    calendarHTML += '</div>';
+    calendarContainer.innerHTML = calendarHTML;
+    
+    // Add click handlers for mood days
+    document.querySelectorAll('.calendar-day.has-mood').forEach(day => {
+        day.addEventListener('click', function() {
+            const mood = this.dataset.mood;
+            const date = this.dataset.date;
+            const moodEntry = moodData.find(entry => entry.entry_date === date);
+            
+            if (moodEntry) {
+                showMoodDetails(moodEntry);
+            }
+        });
+    });
+}
+
+function showMoodDetails(moodEntry) {
+    const mood = moodEntry.mood;
+    const emoji = moodEmojis[mood];
+    const date = new Date(moodEntry.entry_date).toLocaleDateString();
+    
+    const detailsHTML = `
+        <div class="modal fade" id="moodDetailsModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Mood Details</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <div class="fs-1 mb-3">${emoji}</div>
+                        <h4 class="text-capitalize">${mood}</h4>
+                        <p class="text-muted">${date}</p>
+                        ${moodEntry.notes ? `<p class="mt-3">"${moodEntry.notes}"</p>` : ''}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Remove existing modal if any
+    const existingModal = document.getElementById('moodDetailsModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    // Add new modal
+    document.body.insertAdjacentHTML('beforeend', detailsHTML);
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('moodDetailsModal'));
+    modal.show();
+}
+
+function updateMoodDistributionChart() {
     if (moodData.length === 0) {
-        document.getElementById('moodChart').innerHTML = 
-            '<div class="text-center text-muted p-4">No mood data available for this period</div>';
         document.getElementById('moodDistributionChart').innerHTML = 
             '<div class="text-center text-muted p-4">No mood data available for this period</div>';
         return;
     }
-    
-    // Line chart for mood trends
-    const dates = moodData.map(entry => entry.entry_date);
-    const scores = moodData.map(entry => moodScores[entry.mood] || 3);
-    
-    const lineChartData = [{
-        x: dates,
-        y: scores,
-        type: 'scatter',
-        mode: 'lines+markers',
-        line: { color: '#6366f1', width: 3 },
-        marker: { size: 8, color: '#6366f1' },
-        name: 'Mood Score'
-    }];
-    
-    const lineLayout = {
-        title: 'Mood Trends Over Time',
-        xaxis: { title: 'Date' },
-        yaxis: { 
-            title: 'Mood Score', 
-            range: [0, 6],
-            ticktext: ['', 'Sad', 'Anxious', 'Neutral', 'Calm', 'Happy/Excited'],
-            tickvals: [0, 1, 2, 3, 4, 5]
-        },
-        hovermode: 'x unified'
-    };
-    
-    Plotly.newPlot('moodChart', lineChartData, lineLayout, {responsive: true});
     
     // Pie chart for mood distribution
     const moodCounts = {};
