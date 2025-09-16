@@ -3,10 +3,14 @@ import json
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from flask_migrate import Migrate
+from flask_wtf.csrf import CSRFProtect
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
 import os
 from functools import wraps
+import bleach
 
 # AI Service class integrated directly into app.py
 class AIService:
@@ -409,6 +413,18 @@ ai = AIService()
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-change-in-production')
+
+# Security Configuration
+app.config['WTF_CSRF_ENABLED'] = True
+app.config['WTF_CSRF_TIME_LIMIT'] = 3600  # 1 hour
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=24)  # 24 hour session timeout
+
+# Secure cookie settings for production
+if os.environ.get('FLASK_ENV') == 'production':
+    app.config['SESSION_COOKIE_SECURE'] = True
+    app.config['SESSION_COOKIE_HTTPONLY'] = True
+    app.config['SESSION_COOKIE_SAMESITE'] = 'Strict'
+
 # Database configuration - supports both SQLite (local) and PostgreSQL (production)
 database_url = os.environ.get('DATABASE_URL')
 if database_url:
@@ -422,6 +438,27 @@ else:
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///smart_journal.db'
     print("Using SQLite database for local development")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Security helper functions
+def sanitize_input(text):
+    """Sanitize user input to prevent XSS attacks"""
+    if not text:
+        return text
+    # Allow basic formatting but remove dangerous HTML
+    allowed_tags = ['p', 'br', 'strong', 'em', 'u', 'ol', 'ul', 'li']
+    return bleach.clean(text, tags=allowed_tags, strip=True)
+
+def validate_password_strength(password):
+    """Validate password strength"""
+    if len(password) < 8:
+        return False, "Password must be at least 8 characters long"
+    if not any(c.isupper() for c in password):
+        return False, "Password must contain at least one uppercase letter"
+    if not any(c.islower() for c in password):
+        return False, "Password must contain at least one lowercase letter"
+    if not any(c.isdigit() for c in password):
+        return False, "Password must contain at least one number"
+    return True, "Password is strong"
 
 # Custom Jinja2 filters
 @app.template_filter('from_json')
@@ -443,6 +480,12 @@ def from_json_filter(value):
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
+csrf = CSRFProtect(app)
+limiter = Limiter(
+    app,
+    key_func=get_remote_address,
+    default_limits=["200 per day", "50 per hour"]
+)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
@@ -495,6 +538,7 @@ def index():
     return render_template('index.html')
 
 @app.route('/login', methods=['GET', 'POST'])
+@limiter.limit("5 per minute")  # Rate limit login attempts
 def login():
     if request.method == 'POST':
         data = request.get_json()
@@ -519,6 +563,11 @@ def register():
         username = data.get('username')
         email = data.get('email')
         password = data.get('password')
+        
+        # Validate password strength
+        is_strong, password_msg = validate_password_strength(password)
+        if not is_strong:
+            return jsonify({'success': False, 'message': password_msg})
         
         # Check if user already exists
         if User.query.filter_by(username=username).first():
@@ -577,10 +626,10 @@ def new_journal():
 @login_required
 def create_journal():
     data = request.get_json()
-    daily_summary = data.get('daily_summary', '')
+    daily_summary = sanitize_input(data.get('daily_summary', ''))
     ai_questions = data.get('ai_questions', [])
-    user_answers = data.get('user_answers', [])
-    ai_summary = data.get('ai_summary', '')
+    user_answers = [sanitize_input(answer) for answer in data.get('user_answers', [])]
+    ai_summary = sanitize_input(data.get('ai_summary', ''))
     mode = data.get('mode', 'quick')
 
     # Store the AI questions and user answers

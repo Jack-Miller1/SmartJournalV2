@@ -223,6 +223,7 @@ async function generateAIQuestions(dailySummary) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
             },
             body: JSON.stringify({
                 daily_summary: dailySummary,
@@ -299,6 +300,7 @@ async function generateAISummary() {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
             },
             body: JSON.stringify({
                 daily_summary: dailySummary,
@@ -345,6 +347,7 @@ async function saveJournal() {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
             },
             body: JSON.stringify({
                 daily_summary: dailySummary,
