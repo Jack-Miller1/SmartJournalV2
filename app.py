@@ -21,18 +21,44 @@ class AIService:
             
             load_dotenv()
             api_key = os.getenv('OPENAI_API_KEY')
-            if api_key:
+            
+            # Validate API key format
+            if api_key and self._validate_api_key(api_key):
                 self.client = OpenAI(api_key=api_key)
                 self.available = True
+                # Log masked key for debugging (only first 8 chars visible)
+                masked_key = api_key[:8] + "*" * (len(api_key) - 8)
+                print(f"✅ OpenAI API key loaded: {masked_key}")
             else:
                 self.available = False
+                print("⚠️ OpenAI API key not found or invalid format")
         except ImportError:
             print("OpenAI or dotenv not available, AI features will use fallbacks")
             self.available = False
+        except Exception as e:
+            print(f"❌ OpenAI initialization error: {str(e)}")
+            self.available = False
+    
+    def _validate_api_key(self, api_key):
+        """Validate OpenAI API key format"""
+        if not api_key:
+            return False
+        # OpenAI keys start with 'sk-' and are typically 48+ characters
+        if not api_key.startswith('sk-'):
+            return False
+        if len(api_key) < 20:  # Minimum reasonable length
+            return False
+        return True
         
+    def _check_usage_limits(self):
+        """Check if we're within safe usage limits"""
+        # You can add daily/monthly usage tracking here
+        # For now, we'll just ensure the service is available
+        return self.available
+    
     def generate_reflection_questions(self, daily_summary, mode='quick'):
         """Generate AI-powered reflection questions based on daily summary"""
-        if not self.available:
+        if not self.available or not self._check_usage_limits():
             return self._get_fallback_questions(mode), 0
             
         try:
@@ -78,9 +104,14 @@ class AIService:
             
             return questions, response.usage.total_tokens
             
-        except Exception as e:
-            print(f"AI Error: {e}")
-            return self._get_fallback_questions(mode), 0
+            except Exception as e:
+                # Don't expose API key in error messages
+                error_msg = str(e).lower()
+                if 'api' in error_msg and 'key' in error_msg:
+                    print("AI Error: API authentication issue")
+                else:
+                    print(f"AI Error: {e}")
+                return self._get_fallback_questions(mode), 0
     
     def enhance_journal_entry(self, daily_summary, journal_content, mode='quick'):
         """Enhance journal entry with AI insights"""
@@ -837,6 +868,7 @@ def generate_ai_response():
 # NEW: Generate AI questions based on daily summary
 @app.route('/api/generate-ai-questions', methods=['POST'])
 @login_required
+@limiter.limit("10 per minute")  # Limit AI requests
 def generate_ai_questions():
     data = request.get_json()
     daily_summary = data.get('daily_summary', '')
@@ -894,6 +926,7 @@ def generate_ai_questions():
 # NEW: Generate AI summary based on daily summary and user answers
 @app.route('/api/generate-journal-summary', methods=['POST'])
 @login_required
+@limiter.limit("10 per minute")  # Limit AI requests
 def generate_journal_summary():
     data = request.get_json()
     daily_summary = data.get('daily_summary', '')
