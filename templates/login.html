@@ -71,6 +71,7 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
             },
             body: JSON.stringify(formData)
         });
