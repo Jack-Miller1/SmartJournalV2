@@ -409,7 +409,16 @@ ai = AIService()
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-change-in-production')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///smart_journal.db'
+# Database configuration - supports both SQLite (local) and PostgreSQL (production)
+database_url = os.environ.get('DATABASE_URL')
+if database_url:
+    # Production: PostgreSQL (Railway, Heroku, etc.)
+    if database_url.startswith('postgres://'):
+        database_url = database_url.replace('postgres://', 'postgresql://', 1)
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+else:
+    # Development: SQLite
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///smart_journal.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Custom Jinja2 filters
