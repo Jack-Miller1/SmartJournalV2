@@ -217,47 +217,48 @@
 
 @media (max-width: 768px) {
     .mood-calendar {
-        gap: 1px;
+        gap: 2px;
         width: 100%;
         max-width: 100%;
-        overflow-x: auto;
-        padding: 0 5px;
+        padding: 0;
+        margin: 0;
     }
     
     .calendar-day {
         font-size: 12px;
-        min-height: 35px;
-        min-width: 35px;
+        height: 40px;
+        width: auto;
+        flex: 1;
     }
     
     .calendar-header-day {
         font-size: 10px;
-        padding: 6px 0;
-        min-width: 35px;
+        padding: 8px 0;
+        height: auto;
+        flex: 1;
     }
     
     .calendar-header {
-        gap: 1px;
+        gap: 2px;
         margin-bottom: 5px;
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
     }
 }
 
 @media (max-width: 480px) {
     .mood-calendar {
         gap: 1px;
-        padding: 0 2px;
     }
     
     .calendar-day {
         font-size: 10px;
-        min-height: 30px;
-        min-width: 30px;
+        height: 35px;
     }
     
     .calendar-header-day {
         font-size: 9px;
-        padding: 4px 0;
-        min-width: 30px;
+        padding: 6px 0;
     }
 }
 </style>
