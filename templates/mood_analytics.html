@@ -67,32 +67,28 @@
                         </div>
                     </div>
 
-                    <!-- Mood Calendar -->
+                    <!-- Mood List -->
                     <div class="row mb-4">
                         <div class="col-12">
                             <div class="card">
                                 <div class="card-header d-flex justify-content-between align-items-center">
-                                    <h6 class="mb-0">Mood Calendar</h6>
-                                    <div class="btn-group" role="group">
-                                        <button type="button" class="btn btn-sm btn-outline-primary" id="prevMonth">
-                                            <i class="fas fa-chevron-left"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-sm btn-outline-primary" id="nextMonth">
-                                            <i class="fas fa-chevron-right"></i>
-                                        </button>
-                                    </div>
+                                    <h6 class="mb-0">Recent Mood Entries</h6>
+                                    <button type="button" class="btn btn-sm btn-primary" id="recordMoodBtn">
+                                        <i class="fas fa-plus me-1"></i>Record Mood
+                                    </button>
                                 </div>
                                 <div class="card-body">
-                                    <div id="moodCalendar" class="mood-calendar"></div>
+                                    <div id="moodList" class="mood-list">
+                                        <!-- Mood entries will be loaded here -->
+                                    </div>
                                     <div class="mt-3">
-                                        <h6>Legend:</h6>
+                                        <h6>Mood Legend:</h6>
                                         <div class="d-flex flex-wrap gap-2">
                                             <span class="badge bg-success">😊 Happy</span>
                                             <span class="badge bg-info">😌 Calm</span>
                                             <span class="badge bg-secondary">😐 Neutral</span>
                                             <span class="badge bg-warning">😰 Anxious</span>
                                             <span class="badge bg-danger">😢 Sad</span>
-                                            <span class="badge bg-light text-dark">📅 No Data</span>
                                         </div>
                                     </div>
                                 </div>
@@ -136,67 +132,77 @@
 
 {% block extra_css %}
 <style>
-.mood-calendar {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 3px;
-    margin-bottom: 20px;
-    width: 100%;
-    max-width: 100%;
+.mood-list {
+    max-height: 400px;
+    overflow-y: auto;
 }
 
-.calendar-day {
-    border: 1px solid #e5e7eb;
-    border-radius: 6px;
+.mood-entry {
     display: flex;
     align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    position: relative;
-    height: 50px;
-    width: 100%;
+    padding: 12px 16px;
+    border-bottom: 1px solid #e5e7eb;
+    transition: background-color 0.2s ease;
 }
 
-.calendar-day:hover {
-    transform: scale(1.05);
-    z-index: 10;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
-
-.calendar-day.empty {
+.mood-entry:hover {
     background-color: #f9fafb;
-    color: #9ca3af;
 }
 
-.calendar-day.has-mood {
-    font-weight: bold;
+.mood-entry:last-child {
+    border-bottom: none;
 }
 
-/* Mood-specific colors */
-.mood-happy { background-color: #10b981; color: white; }
-.mood-excited { background-color: #10b981; color: white; }
-.mood-calm { background-color: #3b82f6; color: white; }
-.mood-neutral { background-color: #6b7280; color: white; }
-.mood-anxious { background-color: #f59e0b; color: white; }
-.mood-sad { background-color: #ef4444; color: white; }
-
-.calendar-header {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 3px;
-    margin-bottom: 10px;
-}
-
-.calendar-header-day {
-    text-align: center;
-    font-weight: bold;
-    color: #6b7280;
-    padding: 10px 0;
+.mood-entry-date {
+    font-weight: 600;
+    color: #374151;
+    min-width: 100px;
     font-size: 14px;
-    background-color: #f8fafc;
-    border-radius: 6px;
+}
+
+.mood-entry-emoji {
+    font-size: 24px;
+    margin: 0 16px;
+    min-width: 40px;
+    text-align: center;
+}
+
+.mood-entry-details {
+    flex: 1;
+}
+
+.mood-entry-mood {
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 4px;
+}
+
+.mood-entry-note {
+    color: #6b7280;
+    font-size: 14px;
+    font-style: italic;
+}
+
+.mood-entry-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.mood-entry-actions .btn {
+    padding: 4px 8px;
+    font-size: 12px;
+}
+
+.empty-mood-list {
+    text-align: center;
+    padding: 40px 20px;
+    color: #6b7280;
+}
+
+.empty-mood-list i {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.5;
 }
 
 .mood-tooltip {
@@ -218,52 +224,27 @@
 }
 
 @media (max-width: 768px) {
-    .mood-calendar {
-        gap: 2px;
-        width: 100%;
-        max-width: 100%;
-        padding: 0;
-        margin: 0 0 20px 0;
+    .mood-entry {
+        padding: 10px 12px;
     }
     
-    .calendar-day {
+    .mood-entry-date {
+        min-width: 80px;
+        font-size: 13px;
+    }
+    
+    .mood-entry-emoji {
+        font-size: 20px;
+        margin: 0 12px;
+        min-width: 32px;
+    }
+    
+    .mood-entry-mood {
         font-size: 14px;
-        height: 45px;
-        min-width: 0;
-        box-sizing: border-box;
     }
     
-    .calendar-header-day {
-        font-size: 12px;
-        padding: 8px 0;
-        min-width: 0;
-        box-sizing: border-box;
-    }
-    
-    .calendar-header {
-        gap: 2px;
-        margin-bottom: 8px;
-        width: 100%;
-    }
-}
-
-@media (max-width: 480px) {
-    .mood-calendar {
-        gap: 1px;
-    }
-    
-    .calendar-day {
-        font-size: 12px;
-        height: 40px;
-    }
-    
-    .calendar-header-day {
-        font-size: 10px;
-        padding: 6px 0;
-    }
-    
-    .calendar-header {
-        gap: 1px;
+    .mood-entry-note {
+        font-size: 13px;
     }
 }
 </style>
@@ -309,23 +290,11 @@ document.addEventListener('DOMContentLoaded', function() {
         loadMoodData();
     });
     
-    // Calendar navigation
-    document.getElementById('prevMonth').addEventListener('click', function() {
-        currentMonth--;
-        if (currentMonth < 0) {
-            currentMonth = 11;
-            currentYear--;
-        }
-        updateMoodCalendar();
-    });
-    
-    document.getElementById('nextMonth').addEventListener('click', function() {
-        currentMonth++;
-        if (currentMonth > 11) {
-            currentMonth = 0;
-            currentYear++;
-        }
-        updateMoodCalendar();
+    // Record mood button
+    document.getElementById('recordMoodBtn').addEventListener('click', function() {
+        // For now, redirect to mood checkin page
+        // Later we'll add inline mood recording
+        window.location.href = '/mood-checkin';
     });
 });
 
@@ -337,7 +306,7 @@ async function loadMoodData() {
         if (data.success) {
             moodData = data.mood_data;
             updateOverviewCards();
-            updateMoodCalendar();
+            updateMoodList();
             updateMoodDistributionChart();
             updateRecentMoods();
         } else {
@@ -411,83 +380,54 @@ function updateOverviewCards() {
     document.getElementById('moodVariety').textContent = `${uniqueMoods.size} moods`;
 }
 
-function updateMoodCalendar() {
-    const calendarContainer = document.getElementById('moodCalendar');
+function updateMoodList() {
+    const listContainer = document.getElementById('moodList');
     
-    // Create mood data lookup
-    const moodLookup = {};
-    moodData.forEach(entry => {
-        moodLookup[entry.entry_date] = entry.mood;
-    });
-    
-    // Get first day of month and number of days
-    const firstDay = new Date(currentYear, currentMonth, 1);
-    const lastDay = new Date(currentYear, currentMonth + 1, 0);
-    const daysInMonth = lastDay.getDate();
-    const startingDayOfWeek = firstDay.getDay();
-    
-    // Create calendar with month/year header above
-    let calendarHTML = `
-        <div class="text-center mb-3">
-            <h5 class="mb-0">${monthNames[currentMonth]} ${currentYear}</h5>
-        </div>
-        <div class="mood-calendar">
-            <div class="calendar-header">
-    `;
-    
-    // Add day headers in separate header row
-    dayNames.forEach(day => {
-        calendarHTML += `<div class="calendar-header-day">${day}</div>`;
-    });
-    
-    calendarHTML += `</div>`;
-    
-    // Add empty cells for days before the first day of the month
-    for (let i = 0; i < startingDayOfWeek; i++) {
-        calendarHTML += '<div class="calendar-day empty"></div>';
+    if (moodData.length === 0) {
+        listContainer.innerHTML = `
+            <div class="empty-mood-list">
+                <i class="fas fa-heart"></i>
+                <h5>No mood entries yet</h5>
+                <p>Start tracking your mood by clicking "Record Mood" above!</p>
+            </div>
+        `;
+        return;
     }
     
-    // Add days of the month
-    for (let day = 1; day <= daysInMonth; day++) {
-        const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        const mood = moodLookup[dateStr];
-        
-        if (mood) {
-            const emoji = moodEmojis[mood];
-            calendarHTML += `
-                <div class="calendar-day has-mood mood-${mood}" 
-                     data-mood="${mood}" 
-                     data-date="${dateStr}"
-                     title="${mood.charAt(0).toUpperCase() + mood.slice(1)} - ${new Date(dateStr).toLocaleDateString()}">
-                    ${emoji}
-                </div>
-            `;
-        } else {
-            calendarHTML += `
-                <div class="calendar-day empty" 
-                     data-date="${dateStr}"
-                     title="No mood data - ${new Date(dateStr).toLocaleDateString()}">
-                    ${day}
-                </div>
-            `;
-        }
-    }
+    // Sort mood data by date (most recent first)
+    const sortedMoodData = [...moodData].sort((a, b) => new Date(b.entry_date) - new Date(a.entry_date));
     
-    calendarHTML += '</div>';
-    calendarContainer.innerHTML = calendarHTML;
-    
-    // Add click handlers for mood days
-    document.querySelectorAll('.calendar-day.has-mood').forEach(day => {
-        day.addEventListener('click', function() {
-            const mood = this.dataset.mood;
-            const date = this.dataset.date;
-            const moodEntry = moodData.find(entry => entry.entry_date === date);
-            
-            if (moodEntry) {
-                showMoodDetails(moodEntry);
-            }
+    let listHTML = '';
+    sortedMoodData.forEach(entry => {
+        const emoji = moodEmojis[entry.mood];
+        const date = new Date(entry.entry_date);
+        const formattedDate = date.toLocaleDateString('en-US', { 
+            month: 'short', 
+            day: 'numeric',
+            year: date.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
         });
+        
+        listHTML += `
+            <div class="mood-entry">
+                <div class="mood-entry-date">${formattedDate}</div>
+                <div class="mood-entry-emoji">${emoji}</div>
+                <div class="mood-entry-details">
+                    <div class="mood-entry-mood">${entry.mood.charAt(0).toUpperCase() + entry.mood.slice(1)}</div>
+                    ${entry.note ? `<div class="mood-entry-note">"${entry.note}"</div>` : ''}
+                </div>
+                <div class="mood-entry-actions">
+                    <button class="btn btn-sm btn-outline-primary" onclick="editMoodEntry('${entry.entry_date}')">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteMoodEntry('${entry.entry_date}')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        `;
     });
+    
+    listContainer.innerHTML = listHTML;
 }
 
 function showMoodDetails(moodEntry) {
