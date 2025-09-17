@@ -139,22 +139,25 @@
 .mood-calendar {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    gap: 3px;
+    gap: 2px;
     margin-bottom: 20px;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .calendar-day {
-    aspect-ratio: 1;
     border: 1px solid #e5e7eb;
-    border-radius: 6px;
+    border-radius: 4px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 16px;
+    font-size: 14px;
     cursor: pointer;
     transition: all 0.2s ease;
     position: relative;
-    min-height: 50px;
+    height: 40px;
+    width: 100%;
 }
 
 .calendar-day:hover {
@@ -183,18 +186,18 @@
 .calendar-header {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    gap: 3px;
-    margin-bottom: 15px;
+    gap: 2px;
+    margin-bottom: 8px;
 }
 
 .calendar-header-day {
     text-align: center;
     font-weight: bold;
     color: #6b7280;
-    padding: 12px 0;
-    font-size: 14px;
+    padding: 6px 0;
+    font-size: 12px;
     background-color: #f8fafc;
-    border-radius: 6px;
+    border-radius: 4px;
 }
 
 .mood-tooltip {
@@ -217,17 +220,18 @@
 
 @media (max-width: 768px) {
     .mood-calendar {
-        gap: 3px;
+        gap: 2px;
         width: 100%;
         max-width: 100%;
-        padding: 0 5px;
-        margin: 0;
+        margin-left: 0;
+        margin-right: 0;
+        padding: 0 8px;
         box-sizing: border-box;
     }
     
     .calendar-day {
-        font-size: 14px;
-        height: 45px;
+        font-size: 12px;
+        height: 38px;
         min-width: 0;
         box-sizing: border-box;
         display: flex;
@@ -236,45 +240,45 @@
     }
     
     .calendar-header-day {
-        font-size: 12px;
-        padding: 10px 0;
+        font-size: 10px;
+        padding: 8px 0;
         height: auto;
         min-width: 0;
         box-sizing: border-box;
         text-align: center;
-        font-weight: 600;
+        font-weight: bold;
     }
     
     .calendar-header {
-        gap: 3px;
-        margin-bottom: 8px;
+        gap: 2px;
+        margin-bottom: 6px;
         display: grid;
         grid-template-columns: repeat(7, 1fr);
         width: 100%;
         box-sizing: border-box;
-        padding: 0 5px;
+        padding: 0 8px;
     }
 }
 
 @media (max-width: 480px) {
     .mood-calendar {
-        gap: 2px;
-        padding: 0 3px;
+        gap: 1px;
+        padding: 0 4px;
     }
     
     .calendar-day {
-        font-size: 12px;
-        height: 40px;
+        font-size: 10px;
+        height: 32px;
     }
     
     .calendar-header-day {
-        font-size: 10px;
-        padding: 8px 0;
+        font-size: 8px;
+        padding: 6px 0;
     }
     
     .calendar-header {
-        padding: 0 3px;
-        gap: 2px;
+        padding: 0 4px;
+        gap: 1px;
     }
 }
 </style>
